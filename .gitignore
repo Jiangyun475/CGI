@@ -1,0 +1,17 @@
+# 日志
+logs_5folds/
+logs_5folds_all/
+
+# K-mer 缓存（可重新生成）
+**/kmer_cache_*.pt
+
+# 模型权重
+results_paper/**/*.pt
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+
+# 数据集（不上传原始数据）
+outputs/
