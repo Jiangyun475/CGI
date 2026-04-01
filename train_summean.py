@@ -281,7 +281,8 @@ class MoE_GeneConditionedActionAlignment(nn.Module):
         # --- 3. 联合加权对齐 ---
         # 核心：权重 = 基因相似度 * 机制相似度
         # 只有在靶点相似 且 机制相似 的前提下，才施加对齐约束
-        joint_weight = S_gene.detach() * S_mech.detach()
+        # [修改] 去掉 .detach()，让梯度同时流向基因编码器和 MoE 路由器
+        joint_weight = S_gene * S_mech
         weighted_loss = base_loss_matrix * joint_weight
         
         # 排除对角线
@@ -329,13 +330,14 @@ class GeneConditionedActionAlignment(nn.Module):
         
         # 5. 核心修正：用基因相似度进行加权 (Soft Weighting)
         # 如果基因不相关 (S_gene 接近 0)，权重就是 0，放任它们自由分布，不产生任何梯度干扰
-        weighted_loss = base_loss_matrix * S_gene.detach()
-        
+        # [修改] 去掉 .detach()，让梯度流向 V_g，基因编码器参与端到端优化
+        weighted_loss = base_loss_matrix * S_gene
+
         # 排除对角线（自己和自己）
         mask_no_diag = 1.0 - torch.eye(batch_size, device=labels.device)
-        
-        # 取均值：除以有效权重的总和，保证 Loss 数量级的稳定性
-        valid_weight_sum = (S_gene.detach() * mask_no_diag).sum() + 1e-8
+
+        # [修改] 同步去掉 .detach()
+        valid_weight_sum = (S_gene * mask_no_diag).sum() + 1e-8
         loss = (weighted_loss * mask_no_diag).sum() / valid_weight_sum
         
         return loss
