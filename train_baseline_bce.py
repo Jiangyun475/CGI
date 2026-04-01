@@ -163,8 +163,9 @@ class ChemEncoder(nn.Module):
 
 
 class PaperModel(nn.Module):
-    def __init__(self, hidden_dim=128, dropout=0.3):
+    def __init__(self, hidden_dim=128, dropout=0.3, use_ortho=True):
         super().__init__()
+        self.use_ortho = use_ortho
         self.gene_enc = GeneEncoderV1(hidden_dim=hidden_dim, dropout=dropout)
         self.chem_enc = ChemEncoder(hidden_dim=hidden_dim, dropout=dropout)
         self.classifier = nn.Sequential(
@@ -176,8 +177,11 @@ class PaperModel(nn.Module):
     def forward(self, gene_ids, x, edge_index, edge_attr, num_nodes_list):
         V_g = F.normalize(self.gene_enc(gene_ids), dim=-1)
         V_c = F.normalize(self.chem_enc(x, edge_index, edge_attr, num_nodes_list), dim=-1)
-        V_c_perp = V_c - (V_c * V_g).sum(dim=-1, keepdim=True) * V_g
-        logits = self.classifier(torch.cat([V_g, V_c_perp], dim=-1)).squeeze(1)
+        if self.use_ortho:
+            V_c_out = V_c - (V_c * V_g).sum(dim=-1, keepdim=True) * V_g
+        else:
+            V_c_out = V_c
+        logits = self.classifier(torch.cat([V_g, V_c_out], dim=-1)).squeeze(1)
         return logits, V_g
 
 # ================================================================
@@ -197,7 +201,8 @@ def train(args):
         batch_size=args.batch_size, shuffle=False,
         collate_fn=optimized_collate_fn, num_workers=4)
 
-    model     = PaperModel(hidden_dim=args.hidden_dim, dropout=args.dropout).to(device)
+    model     = PaperModel(hidden_dim=args.hidden_dim, dropout=args.dropout,
+                           use_ortho=not args.no_ortho).to(device)
     optimizer = torch.optim.AdamW(model.parameters(), lr=args.lr, weight_decay=1e-3)
     scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
         optimizer, mode='max', factor=0.5, patience=3)
@@ -208,9 +213,10 @@ def train(args):
     save_dir = Path(f'results_baseline_bce/{Path(args.data_dir).name}')
     save_dir.mkdir(parents=True, exist_ok=True)
     tag = f"_{args.run_tag}" if args.run_tag else ""
-    model_name = f"baseline_bce_Fold{args.fold}{tag}.pt"
+    ortho_str = "ortho" if not args.no_ortho else "no_ortho"
+    model_name = f"baseline_bce_{ortho_str}_Fold{args.fold}{tag}.pt"
 
-    print(f"\n🚀 Baseline BCE+Spread | Device: {args.device} | Fold: {args.fold} | AMP: {args.use_amp}")
+    print(f"\n🚀 Baseline BCE+Spread | Ortho: {not args.no_ortho} | Device: {args.device} | Fold: {args.fold} | AMP: {args.use_amp}")
 
     for epoch in range(args.epochs):
         model.train()
@@ -301,4 +307,6 @@ if __name__ == '__main__':
     parser.add_argument('--use_amp',     action='store_true')
     parser.add_argument('--seed',        type=int, default=42)
     parser.add_argument('--run_tag',     type=str, default='')
+    parser.add_argument('--no_ortho',    action='store_true',
+                        help='关闭正交剥离，直接用 V_c 拼接 V_g')
     train(parser.parse_args())
