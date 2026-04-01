@@ -36,7 +36,9 @@ for i, combo in enumerate(itertools.product('ACGT', repeat=6), 1):
     _KMER_VOCAB[''.join(combo)] = i
 _KMER_VOCAB['NNNNNN'] = 0
 
-GENE_MAX_LEN = 8000   # 覆盖约 98% 的基因序列
+GENE_MAX_LEN = 8000        # 覆盖约 98% 的基因序列
+GENE_INNER_DIM = 128       # CNN 内部维度，平衡速度与表达能力
+GENE_STRIDES   = [4, 2, 2] # 8000→2000→1000→500，第一层激进压缩
 
 def set_seed(seed=42):
     import random
@@ -141,24 +143,24 @@ class GeneEncoderV2(nn.Module):
       gene_ids == 0 的位置是填充，注意力分数设为 -inf，
       softmax 后权重精确为 0，不污染聚合结果。
     """
-    def __init__(self, vocab_size=4097, out_dim=128, inner_dim=256, dropout=0.3):
+    def __init__(self, vocab_size=4097, out_dim=128,
+                 inner_dim=GENE_INNER_DIM, strides=GENE_STRIDES, dropout=0.3):
         super().__init__()
         self.dropout = dropout
+        self.strides = strides
 
         # 词嵌入，padding_idx=0 保证填充位置梯度不更新
         self.embedding = nn.Embedding(vocab_size, inner_dim, padding_idx=0)
 
-        # 层次化降采样：3 × stride=2，长度 8000→4000→2000→1000
-        # kernel=7, padding=3 保证 stride=2 时输出长度精确减半
-        # 用 LayerNorm1d 替代 BatchNorm1d：
-        #   BatchNorm/GroupNorm(1,C) 均会跨 L 维度计算，padding 位置污染真实 token
-        #   LayerNorm1d 在 C 维度独立归一化，每个 token 各算各的，padding 免疫
+        # 层次化降采样：stride=[4,2,2]，长度 8000→2000→1000→500
+        # kernel=7, padding=3 在任意 stride 下均保持输出长度 = ceil(L/stride)
+        # LayerNorm1d 在 C 维度独立归一化，padding 位置不污染真实 token
         self.hier_convs = nn.ModuleList([
             nn.Sequential(
-                nn.Conv1d(inner_dim, inner_dim, kernel_size=7, stride=2, padding=3),
+                nn.Conv1d(inner_dim, inner_dim, kernel_size=7, stride=s, padding=3),
                 LayerNorm1d(inner_dim),
                 nn.ReLU()
-            ) for _ in range(3)
+            ) for s in strides
         ])
 
         # 注意力池化：可学习 query 向量
@@ -175,9 +177,9 @@ class GeneEncoderV2(nn.Module):
         # ── padding mask ──────────────────────────────────────────
         # True = 有效位置，False = 填充位置
         # 每经过一次 stride=2，mask 长度减半（取步长=2 的子集）
-        pad_mask = (gene_ids != 0)          # [B, 8000]
-        for _ in range(3):
-            pad_mask = pad_mask[:, ::2]     # [B, 4000] → [B, 2000] → [B, 1000]
+        pad_mask = (gene_ids != 0)               # [B, 8000]
+        for s in self.strides:
+            pad_mask = pad_mask[:, ::s]          # 8000→2000→1000→500
 
         # ── 特征提取 ──────────────────────────────────────────────
         x = self.embedding(gene_ids)        # [B, 8000, 256]
@@ -257,7 +259,10 @@ class MoEPaperModel(nn.Module):
     def __init__(self, hidden_dim=128, dropout=0.3, num_experts=4):
         super().__init__()
         self.num_experts = num_experts
-        self.gene_enc = GeneEncoderV2(out_dim=hidden_dim, inner_dim=256, dropout=dropout)
+        self.gene_enc = GeneEncoderV2(out_dim=hidden_dim,
+                                      inner_dim=GENE_INNER_DIM,
+                                      strides=GENE_STRIDES,
+                                      dropout=dropout)
         self.chem_enc = ChemEncoder(hidden_dim=hidden_dim, dropout=dropout)
 
         self.router = nn.Sequential(
