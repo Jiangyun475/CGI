@@ -390,7 +390,7 @@ def train(args):
 
     for epoch in range(args.epochs):
         model.train(); cl_module.train()
-        total_loss = total_bce = total_var = total_cl = 0.0
+        total_loss = total_bce = total_var = total_cl = total_spread = 0.0
 
         for batch in train_loader:
             optimizer.zero_grad()
@@ -412,9 +412,13 @@ def train(args):
                 loss_var  = (pos_mask * torch.relu(1.0 - norms)).sum() / (pos_mask.sum() + 1e-8)
 
                 loss_cl = cl_module(V_g, V_c_perp, labels)
-                
 
-                loss = loss_bce + args.lam_var * loss_var + args.lam_cl * loss_cl
+                # loss_spread：惩罚 V_g 坍缩，强迫不同基因向量互相分散
+                batch_size = labels.size(0)
+                mask_no_diag = 1.0 - torch.eye(batch_size, device=device)
+                loss_spread = (torch.matmul(V_g, V_g.T) * mask_no_diag).mean()
+
+                loss = loss_bce + args.lam_var * loss_var + args.lam_cl * loss_cl + args.lam_spread * loss_spread
 
             if args.use_amp:
                 scaler.scale(loss).backward()
@@ -432,6 +436,7 @@ def train(args):
             total_bce  += loss_bce.item()
             total_var  += loss_var.item()
             total_cl   += loss_cl.item()
+            total_spread += loss_spread.item()
 
         # ── 验证 ──
         model.eval(); cl_module.eval()
@@ -455,7 +460,7 @@ def train(args):
 
         n = len(train_loader)
         print(f"Ep {epoch+1:02d} | L:{total_loss/n:.3f} "
-              f"(BCE:{total_bce/n:.3f} Var:{total_var/n:.3f} CL:{total_cl/n:.3f}) | "
+              f"(BCE:{total_bce/n:.3f} Var:{total_var/n:.3f} CL:{total_cl/n:.3f} Spread:{total_spread/n:.3f}) | "
               f"VAL_AUC: {auroc:.4f} | PRC: {auprc:.4f} | F1: {f1:.4f}")
 
         if auroc > best_auroc:
@@ -483,6 +488,8 @@ if __name__ == '__main__':
     parser.add_argument('--dropout',      type=float, default=0.3)
     parser.add_argument('--lam_var',      type=float, default=0.2)
     parser.add_argument('--lam_cl',       type=float, default=0.2)
+    parser.add_argument('--lam_spread',   type=float, default=0.1,
+                        help='V_g 分散正则化权重，防止基因编码器坍缩')
     parser.add_argument('--patience',     type=int, default=10)
     parser.add_argument('--use_amp',      action='store_true')
     parser.add_argument('--seed',         type=int, default=42)
