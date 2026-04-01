@@ -125,14 +125,28 @@ class GeneEncoderV1(nn.Module):
         values, _ = torch.topk(features, k=self.k, dim=2)
         return self.aggregation(values.mean(dim=2))
 
+# class GINLayer(nn.Module):
+#     def __init__(self, dim):
+#         super().__init__()
+#         self.mlp = nn.Sequential(nn.Linear(dim, dim), nn.BatchNorm1d(dim), nn.ReLU(), nn.Linear(dim, dim))
+#     def forward(self, x, edge_index):
+#         row, col = edge_index
+#         neighbor_feat = torch.zeros_like(x).index_add_(0, col, x[row])
+#         return self.mlp(x + neighbor_feat)
 class GINLayer(nn.Module):
-    def __init__(self, dim):
+    def __init__(self, dim, edge_dim=4):
         super().__init__()
         self.mlp = nn.Sequential(nn.Linear(dim, dim), nn.BatchNorm1d(dim), nn.ReLU(), nn.Linear(dim, dim))
-    def forward(self, x, edge_index):
+        self.edge_proj = nn.Linear(edge_dim, dim) # 边特征投影
+        
+    def forward(self, x, edge_index, edge_attr):
         row, col = edge_index
-        neighbor_feat = torch.zeros_like(x).index_add_(0, col, x[row])
+        # 将边特征融入邻居节点特征
+        edge_emb = self.edge_proj(edge_attr)
+        msg = F.relu(x[row] + edge_emb) 
+        neighbor_feat = torch.zeros_like(x).index_add_(0, col, msg)
         return self.mlp(x + neighbor_feat)
+
 
 class ChemEncoder_Ablation(nn.Module):
     def __init__(self, hidden_dim=128, dropout=0.3, pool_type='hybrid'):
@@ -152,11 +166,11 @@ class ChemEncoder_Ablation(nn.Module):
             nn.Linear(hidden_dim * 2, hidden_dim)
         )
 
-    def forward(self, x, edge_index, num_nodes_list, h_g):
+    def forward(self, x, edge_index, edge_attr,num_nodes_list, h_g):
         device = x.device
         x = self.atom_embed(x)
         for gin, norm in zip(self.gin_layers, self.norms):
-            x = F.dropout(F.relu(norm(x + gin(x, edge_index))), p=self.dropout, training=self.training)
+            x = F.dropout(F.relu(norm(x + gin(x, edge_index, edge_attr))), p=self.dropout, training=self.training)
             
         num_nodes_tensor = torch.tensor(num_nodes_list, device=device)
         batch_idx = torch.repeat_interleave(torch.arange(len(num_nodes_list), device=device), num_nodes_tensor)
@@ -194,9 +208,9 @@ class PaperModel(nn.Module):
             nn.Linear(hidden_dim, 1)
         )
 
-    def forward(self, gene_ids, x, edge_index, num_nodes_list):
+    def forward(self, gene_ids, x, edge_index,edge_attr, num_nodes_list):
         h_g = self.gene_enc(gene_ids)
-        h_c, alpha = self.chem_enc(x, edge_index, num_nodes_list, h_g)
+        h_c, alpha = self.chem_enc(x, edge_index, edge_attr, num_nodes_list, h_g)
         
         V_g = F.normalize(h_g, dim=-1)
         V_c = F.normalize(h_c, dim=-1)
@@ -273,10 +287,11 @@ def train(args):
         for batch in train_loader:
             optimizer.zero_grad()
             x, edge_index = batch['x'].to(device), batch['edge_index'].to(device)
+            edge_attr = batch['edge_attr'].to(device) # 新增
             gene_ids, labels = batch['gene_ids'].to(device), batch['label'].to(device)
 
             with autocast(enabled=args.use_amp):
-                logits, V_g, V_c, V_c_perp, _ = model(gene_ids, x, edge_index, batch['num_nodes_list'])
+                logits, V_g, V_c, V_c_perp, _ = model(gene_ids, x, edge_index, edge_attr, batch['num_nodes_list'])
                 
                 loss_bce = criterion_bce(logits, labels)
                 
@@ -312,9 +327,10 @@ def train(args):
         with torch.no_grad():
             for batch in val_loader:
                 x, edge_index = batch['x'].to(device), batch['edge_index'].to(device)
+                edge_attr = batch['edge_attr'].to(device)
                 gene_ids, labels = batch['gene_ids'].to(device), batch['label'].numpy()
                 with autocast(enabled=args.use_amp):
-                    logits, _, _, _, _ = model(gene_ids, x, edge_index, batch['num_nodes_list'])
+                    logits, _, _, _, _ = model(gene_ids, x, edge_index, edge_attr, batch['num_nodes_list'])
                 all_preds.extend(torch.sigmoid(logits).cpu().numpy())
                 all_labels.extend(labels)
                 

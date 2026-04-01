@@ -172,18 +172,25 @@ class GeneEncoderV1(nn.Module):
         return self.aggregation(values.mean(dim=2))                     # [B, H]
 
 
+
 class GINLayer(nn.Module):
-    def __init__(self, dim):
+    # 增加 edge_dim 参数，默认对应你 preprocess_graphs.py 里的 4 维边特征
+    def __init__(self, dim, edge_dim=4):
         super().__init__()
-        self.mlp = nn.Sequential(
-            nn.Linear(dim, dim), nn.BatchNorm1d(dim), nn.ReLU(), nn.Linear(dim, dim)
-        )
+        self.mlp = nn.Sequential(nn.Linear(dim, dim), nn.BatchNorm1d(dim), nn.ReLU(), nn.Linear(dim, dim))
+        # 新增：边特征投影层，将低维边特征映射到高维隐藏层空间
+        self.edge_proj = nn.Linear(edge_dim, dim)
 
-    def forward(self, x, edge_index):
-        row, col      = edge_index
-        agg           = torch.zeros_like(x).index_add_(0, col, x[row])
-        return self.mlp(x + agg)
-
+    def forward(self, x, edge_index, edge_attr):
+        row, col = edge_index
+        # 新增：计算边嵌入
+        edge_emb = self.edge_proj(edge_attr)
+        # 融合机制：将源节点特征与对应的边特征相加，通过 ReLU 激活后作为传递的消息
+        msg = F.relu(x[row] + edge_emb)
+        # 聚合：将所有流入目标节点 col 的消息相加
+        neighbor_feat = torch.zeros_like(x).index_add_(0, col, msg)
+        
+        return self.mlp(x + neighbor_feat)
 
 class ChemEncoderBaseline(nn.Module):
     """
@@ -206,11 +213,11 @@ class ChemEncoderBaseline(nn.Module):
             nn.Linear(hidden_dim * 2, hidden_dim),
         )
 
-    def forward(self, x, edge_index, num_nodes_list):
+    def forward(self, x, edge_index, edge_attr, num_nodes_list):
         device = x.device
         x      = self.atom_embed(x)
         for gin, norm in zip(self.gin_layers, self.norms):
-            x = F.dropout(F.relu(norm(x + gin(x, edge_index))),
+            x = F.dropout(F.relu(norm(x + gin(x, edge_index, edge_attr))),
                           p=self.dropout, training=self.training)
 
         num_nodes_t = torch.tensor(num_nodes_list, device=device)
@@ -243,9 +250,9 @@ class LateFusionBaseline(nn.Module):
             nn.Linear(hidden_dim, 1),
         )
 
-    def forward(self, gene_ids, x, edge_index, num_nodes_list):
+    def forward(self, gene_ids, x, edge_index, edge_attr, num_nodes_list):
         h_g    = self.gene_enc(gene_ids)
-        h_c    = self.chem_enc(x, edge_index, num_nodes_list)
+        h_c    = self.chem_enc(x, edge_index, edge_attr, num_nodes_list)
         logits = self.classifier(torch.cat([h_g, h_c], dim=-1)).squeeze(1)
         return logits
 
@@ -293,11 +300,12 @@ def train(args):
             optimizer.zero_grad()
             x          = batch['x'].to(device, non_blocking=True)
             edge_index = batch['edge_index'].to(device, non_blocking=True)
+            edge_attr = batch['edge_attr'].to(device) # 新增
             gene_ids   = batch['gene_ids'].to(device, non_blocking=True)
             labels     = batch['label'].to(device, non_blocking=True)
 
             with autocast(enabled=args.use_amp):
-                logits = model(gene_ids, x, edge_index, batch['num_nodes_list'])
+                logits = model(gene_ids, x, edge_index, edge_attr, batch['num_nodes_list'])
                 loss   = criterion(logits, labels)
 
             if args.use_amp:
@@ -317,9 +325,10 @@ def train(args):
             for batch in val_loader:
                 x          = batch['x'].to(device)
                 edge_index = batch['edge_index'].to(device)
+                edge_attr = batch['edge_attr'].to(device) # 新增
                 gene_ids   = batch['gene_ids'].to(device)
                 with autocast(enabled=args.use_amp):
-                    logits = model(gene_ids, x, edge_index, batch['num_nodes_list'])
+                    logits = model(gene_ids, x, edge_index, edge_attr, batch['num_nodes_list'])
                 all_preds.extend(torch.sigmoid(logits).cpu().numpy())
                 all_labels.extend(batch['label'].numpy())
 

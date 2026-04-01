@@ -175,12 +175,12 @@ echo ""
 ) &
 PID_GPU2=$!
 
-# ── GPU cuda:3 ──────────────────────────────────────────────────
+# ── GPU cuda:0 ──────────────────────────────────────────────────
 (
-    run_ablation "cuda:3" "SumMean"    "sum_mean"
-    run_ablation "cuda:3" "TargetOnly" "target"
-    run_dl_baseline "cuda:3"
-    echo "🏁 [cuda:3] 队列全部完成"
+    run_ablation "cuda:0" "SumMean"    "sum_mean"
+    run_ablation "cuda:0" "TargetOnly" "target"
+    run_dl_baseline "cuda:0"
+    echo "🏁 [cuda:0] 队列全部完成"
 ) &
 PID_GPU3=$!
 

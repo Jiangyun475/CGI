@@ -30,6 +30,7 @@ def visualize_drug_gene_attention(smiles, gene_seq, model_path, device_str='cuda
         
     x = graph_data['x'].to(device)
     edge_index = graph_data['edge_index'].to(device)
+    edge_attr = graph_data['edge_attr'].to(device) # 新增
     num_nodes_list = [x.shape[0]] # batch_size = 1
     
     # 3. 加载模型
@@ -41,7 +42,7 @@ def visualize_drug_gene_attention(smiles, gene_seq, model_path, device_str='cuda
     
     # 4. 前向传播提取 Alpha (Attention Weights)
     with torch.no_grad():
-        logits, _, _, _, alpha = model(gene_ids, x, edge_index, num_nodes_list)
+        logits, _, _, _, alpha = model(gene_ids, x, edge_index, edge_attr, num_nodes_list)
         pred_prob = torch.sigmoid(logits).item()
     
     # 取出 alpha 并转为 numpy (大小正好等于原子数)
