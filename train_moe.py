@@ -272,10 +272,10 @@ def train(args):
 
                 loss_bce = criterion_bce(logits, labels)
 
-                # Load Balancing Loss：最小化各专家使用率的方差
-                # 均匀分配时方差为 0，某个专家垄断时方差最大
+                # Load Balancing Loss：MSE 对均匀分布，num_experts=1 也不会 NaN
                 mean_route = route_weights.mean(dim=0)   # [K]
-                loss_lb    = mean_route.var()
+                uniform    = torch.ones_like(mean_route) / args.num_experts
+                loss_lb    = F.mse_loss(mean_route, uniform)
 
                 loss = loss_bce + args.lam_balance * loss_lb
 
