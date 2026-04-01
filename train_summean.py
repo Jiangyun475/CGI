@@ -230,6 +230,115 @@ class FocalDirectionAwareCL(nn.Module):
         hard_weight = (diff + 1e-4) ** 2.0
         return (diff * hard_weight).mean()
 
+class MoE_GeneConditionedActionAlignment(nn.Module):
+    """
+    机制感知条件动作对齐损失 (MoE-GCAA)
+    创新点：引入软路由机制，避免不同作用机制的化学品被强行对齐。
+    """
+    def __init__(self, hidden_dim=128, num_experts=4):
+        super().__init__()
+        self.criterion = nn.SmoothL1Loss(reduction='none')
+        
+        # 机制路由器 (Gating Network)
+        # 输入：基因特征和剥离后的化学特征的拼接 (隐式包含了结合前后的上下文)
+        self.router = nn.Sequential(
+            nn.Linear(hidden_dim * 2, hidden_dim),
+            nn.BatchNorm1d(hidden_dim),
+            nn.ReLU(),
+            nn.Linear(hidden_dim, num_experts),
+            nn.Softmax(dim=-1) # 输出 K 种机制的概率分布
+        )
+
+    def forward(self, V_g, V_c_perp, labels):
+        batch_size = labels.size(0)
+        
+        # --- 1. 传统计算部分 ---
+        # 标签关系矩阵
+        Y_dir = (2.0 * labels - 1.0).view(-1, 1)  
+        S_label = torch.matmul(Y_dir, Y_dir.T)    
+        
+        # 基因背景相似度 (基础条件)
+        S_gene = torch.matmul(V_g, V_g.T)         
+        S_gene = F.relu(S_gene)                   
+        
+        # 化学动作关系
+        U_c_perp = F.normalize(V_c_perp, p=2, dim=-1)
+        P = torch.matmul(U_c_perp, U_c_perp.T)    
+        
+        # 动作绝对误差
+        base_loss_matrix = self.criterion(P, S_label.detach())
+        
+        # --- 2. MoE 机制路由部分 ---
+        # 拼接特征供路由器判断
+        joint_feature = torch.cat([V_g, V_c_perp], dim=-1)
+        
+        # 计算每个样本的机制概率分布 W: [B, num_experts]
+        W = self.router(joint_feature) 
+        
+        # 计算机制相似度矩阵 S_mech: [B, B]
+        S_mech = torch.matmul(W, W.T)
+        
+        # --- 3. 联合加权对齐 ---
+        # 核心：权重 = 基因相似度 * 机制相似度
+        # 只有在靶点相似 且 机制相似 的前提下，才施加对齐约束
+        joint_weight = S_gene.detach() * S_mech.detach()
+        weighted_loss = base_loss_matrix * joint_weight
+        
+        # 排除对角线
+        mask_no_diag = 1.0 - torch.eye(batch_size, device=labels.device)
+        valid_weight_sum = (joint_weight * mask_no_diag).sum() + 1e-8
+        
+        loss = (weighted_loss * mask_no_diag).sum() / valid_weight_sum
+        
+        # 可选：计算辅助损失 (Load Balancing Loss) 防止路由器坍缩到单一专家
+        # 保证这 K 种机制在整个 Batch 中都被相对均匀地使用
+        mean_W = W.mean(dim=0)
+        entropy_loss = - torch.sum(mean_W * torch.log(mean_W + 1e-8))
+        # 鼓励最大化分布熵，即鼓励走不同的门。可以通过极小的权重加上去。
+        
+        return loss + 0.1 * (math.log(self.router[-2].out_features) - entropy_loss)
+
+class GeneConditionedActionAlignment(nn.Module):
+    """
+    基因条件动作对齐损失 (GCAA)
+    创新点：对齐 [化学动作的关系] 与 [受基因相似度调制的标签关系]。
+    """
+    def __init__(self):
+        super().__init__()
+        # 使用 SmoothL1Loss 比单纯的 MSE 更稳定，对异常点不敏感
+        self.criterion = nn.SmoothL1Loss(reduction='none')
+
+    def forward(self, V_g, V_c_perp, labels):
+        batch_size = labels.size(0)
+        
+        # 1. 标签方向化: 目标永远只有 +1 (同向) 和 -1 (反向)
+        Y_dir = (2.0 * labels - 1.0).view(-1, 1)  
+        S_label = torch.matmul(Y_dir, Y_dir.T)    # [B, B]
+        
+        # 2. 计算基因背景的相似度矩阵，只保留正相关
+        S_gene = torch.matmul(V_g, V_g.T)         
+        S_gene = F.relu(S_gene)                   # [B, B] 范围 [0, 1]
+        
+        # 3. 计算当前模型提取的纯粹化学动作关系
+        U_c_perp = F.normalize(V_c_perp, p=2, dim=-1)
+        P = torch.matmul(U_c_perp, U_c_perp.T)    # [B, B] 范围 [-1, 1]
+        
+        # 4. 计算基础误差：计算化学动作与目标 (+1/-1) 的绝对误差
+        # 注意：这里我们不再让 P 去拟合 0，而是直接拟合标签方向
+        base_loss_matrix = self.criterion(P, S_label.detach())
+        
+        # 5. 核心修正：用基因相似度进行加权 (Soft Weighting)
+        # 如果基因不相关 (S_gene 接近 0)，权重就是 0，放任它们自由分布，不产生任何梯度干扰
+        weighted_loss = base_loss_matrix * S_gene.detach()
+        
+        # 排除对角线（自己和自己）
+        mask_no_diag = 1.0 - torch.eye(batch_size, device=labels.device)
+        
+        # 取均值：除以有效权重的总和，保证 Loss 数量级的稳定性
+        valid_weight_sum = (S_gene.detach() * mask_no_diag).sum() + 1e-8
+        loss = (weighted_loss * mask_no_diag).sum() / valid_weight_sum
+        
+        return loss
 
 # ================================================================
 # 3. 训练主循环
@@ -249,10 +358,23 @@ def train(args):
         collate_fn=optimized_collate_fn, num_workers=4)
 
     model     = PaperModel(hidden_dim=args.hidden_dim, dropout=args.dropout).to(device)
-    cl_module = FocalDirectionAwareCL(dim=args.hidden_dim).to(device)
-    optimizer = torch.optim.AdamW(
-        list(model.parameters()) + list(cl_module.parameters()),
-        lr=args.lr, weight_decay=1e-3)
+
+
+    # cl_module = FocalDirectionAwareCL(dim=args.hidden_dim).to(device)
+    # optimizer = torch.optim.AdamW(
+    #     list(model.parameters()) + list(cl_module.parameters()),
+    #     lr=args.lr, weight_decay=1e-3)
+
+
+    # cl_module = GeneConditionedActionAlignment().to(device)
+    cl_module = MoE_GeneConditionedActionAlignment(hidden_dim=args.hidden_dim, num_experts=4).to(device)
+    # optimizer = torch.optim.AdamW(
+    #         model.parameters()+ list(cl_module.parameters()), 
+    #         lr=args.lr, weight_decay=1e-3)
+
+    optimizer = torch.optim.AdamW(list(model.parameters()) + list(cl_module.parameters()),  lr=args.lr, weight_decay=1e-3)
+
+        
     scheduler    = torch.optim.lr_scheduler.ReduceLROnPlateau(
         optimizer, mode='max', factor=0.5, patience=3)
     criterion_bce = nn.BCEWithLogitsLoss()
@@ -290,6 +412,7 @@ def train(args):
                 loss_var  = (pos_mask * torch.relu(1.0 - norms)).sum() / (pos_mask.sum() + 1e-8)
 
                 loss_cl = cl_module(V_g, V_c_perp, labels)
+                
 
                 loss = loss_bce + args.lam_var * loss_var + args.lam_cl * loss_cl
 
@@ -302,7 +425,7 @@ def train(args):
             else:
                 loss.backward()
                 torch.nn.utils.clip_grad_norm_(
-                    list(model.parameters()) + list(cl_module.parameters()), 1.0)
+                    list(model.parameters())+ list(cl_module.parameters()) , 1.0)
                 optimizer.step()
 
             total_loss += loss.item()
