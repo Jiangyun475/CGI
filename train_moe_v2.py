@@ -85,7 +85,8 @@ class OptimizedGraphDataset(Dataset):
     def __getitem__(self, idx):
         return {'graph': self.smiles_to_graph[self.graph_indices[idx]],
                 'gene_ids': self.gene_ids[idx],
-                'label': self.labels[idx]}
+                'label': self.labels[idx],
+                'sample_idx': idx}   # 全局索引，用于 gene_cache 查表
 
 def optimized_collate_fn(batch):
     all_x, all_edge_index, all_edge_attr, num_nodes_list = [], [], [], []
@@ -104,8 +105,9 @@ def optimized_collate_fn(batch):
     edge_attr  = torch.cat(all_edge_attr, dim=0)  if all_edge_attr  else torch.zeros(0, 4)
     return {'x': x, 'edge_index': edge_index, 'edge_attr': edge_attr,
             'num_nodes_list': num_nodes_list,
-            'gene_ids': torch.stack([b['gene_ids'] for b in batch]),
-            'label':    torch.stack([b['label']    for b in batch])}
+            'gene_ids':    torch.stack([b['gene_ids']    for b in batch]),
+            'label':       torch.stack([b['label']       for b in batch]),
+            'sample_idx':  torch.tensor([b['sample_idx'] for b in batch], dtype=torch.long)}
 
 # ================================================================
 # 1. 模型定义
@@ -258,7 +260,9 @@ class ChemEncoder(nn.Module):
 class MoEPaperModel(nn.Module):
     def __init__(self, hidden_dim=128, dropout=0.3, num_experts=4):
         super().__init__()
-        self.num_experts = num_experts
+        self.num_experts   = num_experts
+        self._gene_cache   = None
+        self._cache_built  = False
         self.gene_enc = GeneEncoderV2(out_dim=hidden_dim,
                                       inner_dim=GENE_INNER_DIM,
                                       strides=GENE_STRIDES,
@@ -282,11 +286,45 @@ class MoEPaperModel(nn.Module):
             ) for _ in range(num_experts)
         ])
 
-    def forward(self, gene_ids, x, edge_index, edge_attr, num_nodes_list):
-        h_g = self.gene_enc(gene_ids)
-        h_c = self.chem_enc(x, edge_index, edge_attr, num_nodes_list)
+    def build_gene_cache(self, all_gene_ids, device, batch_size=256):
+        """
+        预计算数据集中所有唯一基因的 V_g，存入 self._gene_cache。
+        每个 epoch 开始前调用一次，用 no_grad 提速。
+        gene_enc 的梯度通过 optimizer.step() 在下一次 build_gene_cache 时生效。
+        """
+        # 找出唯一基因序列及其在原始索引中的位置
+        unique_ids, inverse_idx = torch.unique(all_gene_ids, dim=0, return_inverse=True)
+        n = unique_ids.size(0)
 
-        V_g = F.normalize(h_g, dim=-1)
+        v_list = []
+        self.gene_enc.eval()
+        with torch.no_grad():
+            for start in range(0, n, batch_size):
+                chunk = unique_ids[start:start+batch_size].to(device)
+                with autocast(enabled=True):
+                    v = F.normalize(self.gene_enc(chunk), dim=-1)
+                v_list.append(v.cpu())
+        self.gene_enc.train()
+
+        # unique_vg[i] = 第 i 个唯一基因的 V_g
+        unique_vg = torch.cat(v_list, dim=0)          # [N_unique, H]
+        # 还原成与原始数据集等长的查找表
+        self._gene_cache  = unique_vg[inverse_idx]    # [N_total, H]  存在 CPU
+        self._cache_built = True
+
+    def forward(self, gene_ids, x, edge_index, edge_attr, num_nodes_list,
+                sample_indices=None):
+        """
+        sample_indices: 当前 batch 在数据集中的全局索引，用于查 gene_cache。
+                        若为 None（推理阶段），则直接调用 gene_enc。
+        """
+        if self._cache_built and sample_indices is not None:
+            # 直接从缓存取 V_g，无需过 gene_enc
+            V_g = self._gene_cache[sample_indices].to(x.device)
+        else:
+            V_g = F.normalize(self.gene_enc(gene_ids), dim=-1)
+
+        h_c = self.chem_enc(x, edge_index, edge_attr, num_nodes_list)
         V_c = F.normalize(h_c, dim=-1)
         V_c_perp = V_c - (V_c * V_g).sum(dim=-1, keepdim=True) * V_g
 
@@ -307,14 +345,19 @@ def train(args):
     set_seed(args.seed)
     device = torch.device(args.device)
 
-    train_loader = DataLoader(
-        OptimizedGraphDataset(args.data_dir, args.fold, 'train'),
-        batch_size=args.batch_size, shuffle=True,
-        collate_fn=optimized_collate_fn, num_workers=4, pin_memory=True)
+    train_dataset = OptimizedGraphDataset(args.data_dir, args.fold, 'train')
+    train_loader  = DataLoader(
+        train_dataset, batch_size=args.batch_size, shuffle=True,
+        collate_fn=optimized_collate_fn, num_workers=4, pin_memory=True,
+        sampler=None)
     val_loader = DataLoader(
         OptimizedGraphDataset(args.data_dir, args.fold, 'val'),
         batch_size=args.batch_size, shuffle=False,
         collate_fn=optimized_collate_fn, num_workers=4, pin_memory=True)
+
+    # 预先把整个训练集的 gene_ids 收集成一个大 tensor，供 build_gene_cache 使用
+    print("收集训练集全部基因序列...", flush=True)
+    all_train_gene_ids = train_dataset.gene_ids   # [N_train, 8000]，已在 Dataset 里缓存
 
     model     = MoEPaperModel(
         hidden_dim=args.hidden_dim, dropout=args.dropout,
@@ -335,20 +378,27 @@ def train(args):
           f"gene_len=8000 | Device: {args.device} | Fold: {args.fold}")
 
     for epoch in range(args.epochs):
+        # ── 每个 epoch 开始前预计算全部唯一基因的 V_g ──────────────
+        print(f"[Ep {epoch+1}] 预计算基因缓存...", end=' ', flush=True)
+        model.build_gene_cache(all_train_gene_ids, device, batch_size=512)
+        print("完成", flush=True)
+
         model.train()
         total_loss = total_bce = total_lb = 0.0
 
         for batch in train_loader:
             optimizer.zero_grad()
-            x          = batch['x'].to(device)
+            x           = batch['x'].to(device)
             edge_index  = batch['edge_index'].to(device)
             edge_attr   = batch['edge_attr'].to(device)
             gene_ids    = batch['gene_ids'].to(device)
             labels      = batch['label'].to(device)
+            sample_idx  = batch['sample_idx']   # 留在 CPU，用于查表
 
             with autocast(enabled=args.use_amp):
                 logits, V_g, route_weights = model(
-                    gene_ids, x, edge_index, edge_attr, batch['num_nodes_list'])
+                    gene_ids, x, edge_index, edge_attr, batch['num_nodes_list'],
+                    sample_indices=sample_idx)
 
                 loss_bce = criterion_bce(logits, labels)
 
