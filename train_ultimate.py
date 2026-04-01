@@ -25,6 +25,13 @@ from torch.cuda.amp import autocast, GradScaler
 from torch_geometric.utils import softmax
 from sklearn.metrics import roc_auc_score, average_precision_score, f1_score
 
+try:
+    from entmax import entmax15
+    HAS_ENTMAX = True
+except ImportError:
+    HAS_ENTMAX = False
+    print("⚠️ 提示: 未安装 entmax，将回退到普通 Softmax。请运行 pip install entmax")
+
 # ================================================================
 # 0. 全局随机种子
 # ================================================================
@@ -180,9 +187,20 @@ class ChemEncoder_Ablation(nn.Module):
         mean_pool = sum_pool / num_nodes_tensor.unsqueeze(1).clamp(min=1.0)
         
         # 2. 靶向注意力 (获取原子级权重 alpha)
+        # q = self.attn_proj(h_g) 
+        # scores = (x * q[batch_idx]).sum(dim=-1) / math.sqrt(x.size(-1)) 
+        # alpha = softmax(scores, batch_idx) # 🔥 返回给外部画热力图用！
+        
+        # 修改为 (加入 tau = 0.1):
+        tau = 0.1  # 你可以后续测试 0.05, 0.1, 0.5
         q = self.attn_proj(h_g) 
         scores = (x * q[batch_idx]).sum(dim=-1) / math.sqrt(x.size(-1)) 
-        alpha = softmax(scores, batch_idx) # 🔥 返回给外部画热力图用！
+        # 核心修改：缩放 scores
+        alpha = softmax(scores / tau, batch_idx)
+
+
+
+
         x_weighted = x * alpha.unsqueeze(-1) 
         target_pool = torch.zeros(len(num_nodes_list), x.size(1), device=device).index_add_(0, batch_idx, x_weighted)
         
@@ -273,8 +291,9 @@ def train(args):
     save_dir = Path(f'results_paper/{Path(args.data_dir).name}')
     save_dir.mkdir(parents=True, exist_ok=True)
     
-    # 构建保存的模型名（携带消融参数）
-    model_name = f"model_ortho{not args.disable_ortho}_cl{not args.disable_cl}_{args.pool_type}.pt"
+    # 构建保存的模型名（携带消融参数 + fold + 可选标签）
+    tag = f"_{args.run_tag}" if args.run_tag else ""
+    model_name = f"model_ortho{not args.disable_ortho}_cl{not args.disable_cl}_{args.pool_type}_Fold{args.fold}{tag}.pt"
 
     print(f"\n🚀 论文训练版本启动 | Device: {args.device} | AMP: {args.use_amp}")
     print(f"📊 [消融配置] 混合池化: {args.pool_type} | 正交: {not args.disable_ortho} | 对比学习: {not args.disable_cl}")
@@ -369,5 +388,6 @@ if __name__ == '__main__':
     parser.add_argument('--pool_type', type=str, default='hybrid', choices=['hybrid', 'sum_mean', 'target'], help='池化策略')
     parser.add_argument('--disable_ortho', action='store_true', help='关闭正交剥离')
     parser.add_argument('--disable_cl', action='store_true', help='关闭对比学习')
+    parser.add_argument('--run_tag', type=str, default='', help='自定义标签附加到模型名，如 tau01、exp1')
     
     train(parser.parse_args())
