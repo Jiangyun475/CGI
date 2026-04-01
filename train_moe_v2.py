@@ -133,10 +133,13 @@ class GeneEncoderV2(nn.Module):
 
         # 层次化降采样：3 × stride=2，长度 8000→4000→2000→1000
         # kernel=7, padding=3 保证 stride=2 时输出长度精确减半
+        # 用 GroupNorm(1, C) 替代 BatchNorm1d：
+        #   BatchNorm 在 (B, L) 上计算统计量，padding 位置（占多数）会污染均值/方差
+        #   GroupNorm(1, C) 按样本独立计算，完全不受其他样本和 padding 影响
         self.hier_convs = nn.ModuleList([
             nn.Sequential(
                 nn.Conv1d(inner_dim, inner_dim, kernel_size=7, stride=2, padding=3),
-                nn.BatchNorm1d(inner_dim),
+                nn.GroupNorm(1, inner_dim),
                 nn.ReLU()
             ) for _ in range(3)
         ])
