@@ -272,10 +272,14 @@ def train(args):
 
                 loss_bce = criterion_bce(logits, labels)
 
-                # Load Balancing Loss：MSE 对均匀分布，num_experts=1 也不会 NaN
-                mean_route = route_weights.mean(dim=0)   # [K]
-                uniform    = torch.ones_like(mean_route) / args.num_experts
-                loss_lb    = F.mse_loss(mean_route, uniform)
+                # Load Balancing Loss：
+                # 宏观均衡：batch 级别各专家分配接近均匀
+                mean_route  = route_weights.mean(dim=0)
+                uniform     = torch.ones_like(mean_route) / args.num_experts
+                loss_macro  = F.mse_loss(mean_route, uniform)
+                # 微观尖锐：单样本路由权重越稀疏越好（熵越小越好）
+                loss_entropy = -(route_weights * torch.log(route_weights + 1e-8)).sum(dim=-1).mean()
+                loss_lb      = loss_macro + 0.1 * loss_entropy
 
                 loss = loss_bce + args.lam_balance * loss_lb
 
