@@ -109,6 +109,23 @@ def optimized_collate_fn(batch):
 # 1. 模型定义
 # ================================================================
 
+class LayerNorm1d(nn.Module):
+    """
+    专为 CNN 1D [B, C, L] 设计的 LayerNorm 包装器。
+    在 C 维度上独立归一化，每个 token 各算各的，
+    padding 位置不会污染真实 token 的统计量。
+    """
+    def __init__(self, num_features):
+        super().__init__()
+        self.norm = nn.LayerNorm(num_features)
+
+    def forward(self, x):
+        x = x.transpose(1, 2)  # [B, C, L] → [B, L, C]
+        x = self.norm(x)       # 在 C 维度归一化，每个 token 独立
+        x = x.transpose(1, 2)  # [B, L, C] → [B, C, L]
+        return x
+
+
 class GeneEncoderV2(nn.Module):
     """
     层次化 CNN + 注意力池化基因编码器。
@@ -133,13 +150,13 @@ class GeneEncoderV2(nn.Module):
 
         # 层次化降采样：3 × stride=2，长度 8000→4000→2000→1000
         # kernel=7, padding=3 保证 stride=2 时输出长度精确减半
-        # 用 GroupNorm(1, C) 替代 BatchNorm1d：
-        #   BatchNorm 在 (B, L) 上计算统计量，padding 位置（占多数）会污染均值/方差
-        #   GroupNorm(1, C) 按样本独立计算，完全不受其他样本和 padding 影响
+        # 用 LayerNorm1d 替代 BatchNorm1d：
+        #   BatchNorm/GroupNorm(1,C) 均会跨 L 维度计算，padding 位置污染真实 token
+        #   LayerNorm1d 在 C 维度独立归一化，每个 token 各算各的，padding 免疫
         self.hier_convs = nn.ModuleList([
             nn.Sequential(
                 nn.Conv1d(inner_dim, inner_dim, kernel_size=7, stride=2, padding=3),
-                nn.GroupNorm(1, inner_dim),
+                LayerNorm1d(inner_dim),
                 nn.ReLU()
             ) for _ in range(3)
         ])
