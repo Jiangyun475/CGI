@@ -37,7 +37,7 @@ def set_seed(seed=42):
     if torch.cuda.is_available():
         torch.cuda.manual_seed_all(seed)
 
-def encode_kmer_sequence(sequence: str, k: int = 6, max_len: int = 1000) -> list:
+def encode_kmer_sequence(sequence: str, k: int = 6, max_len: int = 3000) -> list:
     kmers = []
     for i in range(len(sequence) - k + 1):
         kmer = sequence[i:i+k].upper()
@@ -59,7 +59,7 @@ class OptimizedGraphDataset(Dataset):
         self.graph_indices = [self.data['graph_indices'][i] for i in self.indices]
         self.labels = torch.tensor([self.data['labels'][i] for i in self.indices], dtype=torch.float32)
         gene_sequences = [self.data['gene_sequences'][i] for i in self.indices]
-        cache_file = Path(data_dir) / f'kmer_cache_fold{fold_idx}_{split}.pt'
+        cache_file = Path(data_dir) / f'kmer_cache_fold{fold_idx}_{split}_len3000.pt'
         if cache_file.exists():
             print(f"[{split.upper()}] ⚡ 加载 K-mer 缓存: {cache_file.name}")
             self.gene_ids = torch.load(cache_file)
@@ -109,7 +109,7 @@ class GeneEncoderV1(nn.Module):
             for k in kernel_sizes])
         self.aggregation = nn.Sequential(
             nn.Linear(hidden_dim, hidden_dim), nn.LayerNorm(hidden_dim), nn.ReLU())
-        self.k = 10
+        self.k = 30  # 序列长度从 1000→3000，Top-K 同步扩大
         self.dropout = dropout
 
     def forward(self, gene_ids):
