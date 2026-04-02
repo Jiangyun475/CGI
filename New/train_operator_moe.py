@@ -71,7 +71,7 @@ def set_seed(seed=42):
         torch.cuda.manual_seed_all(seed)
 
 
-def encode_kmer_sequence(sequence: str, k: int = 6, max_len: int = 3000) -> list:
+def encode_kmer_sequence(sequence: str, k: int = 6, max_len: int = 1000) -> list:
     kmers = []
     for i in range(len(sequence) - k + 1):
         kmer = sequence[i:i+k].upper()
@@ -108,7 +108,7 @@ def scatter_add(src, batch_idx, dim_size):
 # ================================================================
 
 class OptimizedGraphDataset(Dataset):
-    def __init__(self, data_dir, fold_idx=0, split='train', gene_max_len=3000):
+    def __init__(self, data_dir, fold_idx=0, split='train', gene_max_len=1000):
         import pickle
         with open(Path(data_dir) / 'chemical_cold_splits.pkl', 'rb') as f:
             splits = pickle.load(f)
@@ -675,7 +675,7 @@ if __name__ == '__main__':
     parser.add_argument('--warmup_epochs', type=int, default=5,
                         help='LR warmup（attn_queries 零初始化需要预热）')
 
-    parser.add_argument('--gene_max_len',  type=int, default=3000,
+    parser.add_argument('--gene_max_len',  type=int, default=1000,
                         help='基因 k-mer 序列长度')
     parser.add_argument('--operator_rank', type=int, default=8,
                         help='算子秩 r = 药效团数 = 基因读取头数')
