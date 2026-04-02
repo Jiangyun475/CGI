@@ -32,7 +32,24 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torch.cuda.amp import GradScaler, autocast
 from torch.utils.data import DataLoader, Dataset
-from torch_scatter import scatter_softmax, scatter_add   # pip install torch-scatter
+def scatter_softmax(scores, batch_idx):
+    """跨分子的原子级 softmax，纯 PyTorch 实现。"""
+    # 数值稳定：每个分子内减去最大值
+    max_scores = torch.zeros(batch_idx.max().item() + 1,
+                             device=scores.device).index_reduce_(
+                                 0, batch_idx, scores, 'amax', include_self=True)
+    scores_shifted = scores - max_scores[batch_idx]
+    exp_scores = torch.exp(scores_shifted)
+    exp_sum = torch.zeros(batch_idx.max().item() + 1,
+                          device=scores.device).index_add_(0, batch_idx, exp_scores)
+    return exp_scores / (exp_sum[batch_idx] + 1e-8)
+
+def scatter_add(src, batch_idx, dim=0, dim_size=None):
+    """按 batch_idx 求和，纯 PyTorch 实现。"""
+    if dim_size is None:
+        dim_size = batch_idx.max().item() + 1
+    out = torch.zeros(dim_size, src.size(1), device=src.device, dtype=src.dtype)
+    return out.index_add_(0, batch_idx, src)
 from sklearn.metrics import roc_auc_score, average_precision_score, f1_score
 
 # ================================================================
