@@ -169,70 +169,89 @@ class GeneMultiHeadReader(nn.Module):
     """
     基因多头读取器：r 个注意力头各自读取序列的不同方面。
 
-    与 GeneEncoderV1 的区别：
-      - 不做 TopK 池化（不丢弃位置信息）
-      - r 个可学习查询向量 → r 个软注意力权重 → r 个专属基因视角
-      - 零初始化 + warmup（沿用 train_moe_v3 稳定性经验）
-      - 返回 h_g_modes [B, r, H] + h_g_global [B, H]
+    两个可控变量（通过 args 传入）：
+      use_dilated   : False → 标准 CNN [6,8,10,12]（感受野 ~17bp）
+                      True  → 空洞 CNN kernel=6, dilation=[1,2,4,8]（感受野 ~46bp）
+      gene_hidden_dim: CNN 内部通道宽度（默认=hidden_dim=128）
+                       设为 256 可减少信息压缩损失；
+                       注意力完成后投影回 hidden_dim 再做耦合
 
     前向过程：
       gene_ids [B, L]
-        → embedding [B, L, H]
-        → CNN×4  [B, L', H]       （保留序列维度）
-        → attn_queries [r, H] × seq → scores [B, r, L']
+        → embedding [B, L, hidden_dim]
+        → CNN×4 [B, L', gene_hidden_dim]   （宽度可与 hidden_dim 不同）
+        → seq_norm
+        → attn_queries [r, gene_hidden_dim] → scores [B, r, L']
         → softmax → attn [B, r, L']
-        → weighted sum → h_g_modes [B, r, H]
-        → mean → h_g_global [B, H]
+        → weighted sum → [B, r, gene_hidden_dim]
+        → proj（若 gene_hidden_dim ≠ hidden_dim）→ h_g_modes [B, r, hidden_dim]
+        → out_norm → mean → h_g_global [B, hidden_dim]
     """
-    def __init__(self, vocab_size=4097, hidden_dim=128, num_heads=8, dropout=0.3):
+    def __init__(self, vocab_size=4097, hidden_dim=128, num_heads=8,
+                 dropout=0.3, use_dilated=False, gene_hidden_dim=None):
         super().__init__()
         self.num_heads = num_heads
-        H = hidden_dim
+        H  = hidden_dim
+        GH = gene_hidden_dim if gene_hidden_dim is not None else hidden_dim
 
         self.embedding = nn.Embedding(vocab_size, H, padding_idx=0)
-        kernel_sizes = [6, 8, 10, 12]
-        self.convs = nn.ModuleList([
-            nn.Conv1d(H, H // len(kernel_sizes), ks, padding=ks // 2)
-            for ks in kernel_sizes
-        ])
-        # 序列特征归一化（在位置维度上做 LayerNorm）
-        self.seq_norm = nn.LayerNorm(H)
 
-        # r 个注意力查询向量，零初始化（稳定训练）
-        self.attn_queries = nn.Parameter(torch.zeros(num_heads, H))
+        # CNN：标准 or 空洞
+        if use_dilated:
+            # kernel=7（奇数保证 same-length 输出），dilation=[1,2,4,8]
+            # 有效感受野：7/13/25/49 k-mer ≈ 12/18/30/54 bp
+            # padding = dilation * (kernel-1)//2 = dilation * 3
+            dilations = [1, 2, 4, 8]
+            self.convs = nn.ModuleList([
+                nn.Conv1d(H, GH // len(dilations), 7,
+                          padding=d * 3, dilation=d)
+                for d in dilations
+            ])
+        else:
+            # 标准多尺度 kernel，每支输出 GH//4 通道
+            kernel_sizes = [6, 8, 10, 12]
+            self.convs = nn.ModuleList([
+                nn.Conv1d(H, GH // len(kernel_sizes), ks, padding=ks // 2)
+                for ks in kernel_sizes
+            ])
 
-        # 输出归一化
+        self.seq_norm = nn.LayerNorm(GH)
+
+        # 注意力查询在 gene_hidden_dim 空间内运作
+        self.attn_queries = nn.Parameter(torch.zeros(num_heads, GH))
+
+        # 若 GH ≠ H，需要投影回 hidden_dim 再与化学侧耦合
+        self.proj = nn.Linear(GH, H) if GH != H else nn.Identity()
+
         self.out_norm = nn.LayerNorm(H)
-        self.dropout = dropout
+        self.dropout  = dropout
 
     def forward(self, gene_ids):
         """
         Returns:
-          h_g_modes  [B, r, H]  — r 个模式专属基因视角
-          h_g_global [B, H]     — 全局基因表示（模式平均）
+          h_g_modes  [B, r, H]   — r 个模式专属基因视角（已投影到 hidden_dim）
+          h_g_global [B, H]      — 全局基因表示（模式平均）
+          attn       [B, r, L']  — 注意力权重（可解释性）
         """
-        B = gene_ids.size(0)
-
-        # k-mer 嵌入 → CNN 特征提取
-        x = self.embedding(gene_ids).transpose(1, 2)          # [B, H, L]
-        x = torch.cat([conv(x) for conv in self.convs], dim=1)  # [B, H, L']
+        # k-mer 嵌入 → CNN
+        x = self.embedding(gene_ids).transpose(1, 2)            # [B, H, L]
+        x = torch.cat([conv(x) for conv in self.convs], dim=1)  # [B, GH, L']
         x = F.dropout(F.relu(x), p=self.dropout, training=self.training)
-        x = x.transpose(1, 2)                                  # [B, L', H]
-        x = self.seq_norm(x)                                   # 位置归一化
+        x = x.transpose(1, 2)                                   # [B, L', GH]
+        x = self.seq_norm(x)
 
-        # 多头注意力池化
-        # scores: [B, r, L'] = x @ queries^T / √H
-        scores = torch.einsum('blh,rh->brl', x, self.attn_queries) / math.sqrt(x.size(-1))
-        attn = F.softmax(scores, dim=-1)                       # [B, r, L']
+        # 多头注意力池化（在 GH 空间内）
+        scores = torch.einsum('blg,rg->brl', x, self.attn_queries) / math.sqrt(x.size(-1))
+        attn   = F.softmax(scores, dim=-1)                      # [B, r, L']
+        pooled = torch.einsum('brl,blg->brg', attn, x)         # [B, r, GH]
 
-        # 加权聚合 → h_g_modes [B, r, H]
-        h_g_modes = torch.einsum('brl,blh->brh', attn, x)
+        # 投影到 hidden_dim（GH=H 时为 Identity）
+        h_g_modes = self.proj(pooled)                           # [B, r, H]
         h_g_modes = self.out_norm(h_g_modes)
 
-        # 全局表示：各头平均
-        h_g_global = h_g_modes.mean(dim=1)                    # [B, H]
+        h_g_global = h_g_modes.mean(dim=1)                     # [B, H]
 
-        return h_g_modes, h_g_global, attn                    # attn 保留用于可解释性
+        return h_g_modes, h_g_global, attn
 
 
 class GINLayer(nn.Module):
@@ -357,14 +376,16 @@ class DrugOperatorNetV2(nn.Module):
       hadamard     — h_c ⊙ h_g_global → MLP
     """
     def __init__(self, hidden_dim=128, dropout=0.3,
-                 operator_rank=8, interaction_type='operator'):
+                 operator_rank=8, interaction_type='operator',
+                 use_dilated=False, gene_hidden_dim=None):
         super().__init__()
         self.interaction_type = interaction_type
         r = operator_rank
 
         # 基因编码器：多头读取器，头数 = 算子秩
         self.gene_enc = GeneMultiHeadReader(
-            hidden_dim=hidden_dim, num_heads=r, dropout=dropout)
+            hidden_dim=hidden_dim, num_heads=r, dropout=dropout,
+            use_dilated=use_dilated, gene_hidden_dim=gene_hidden_dim)
 
         # 化学原子编码器
         self.atom_enc = AtomEncoder(hidden_dim=hidden_dim, dropout=dropout)
@@ -480,6 +501,8 @@ def train(args):
         hidden_dim=args.hidden_dim, dropout=args.dropout,
         operator_rank=args.operator_rank,
         interaction_type=args.interaction_type,
+        use_dilated=args.use_dilated,
+        gene_hidden_dim=args.gene_hidden_dim,
     ).to(device)
 
     n_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
@@ -501,9 +524,12 @@ def train(args):
     base_lr       = args.lr
 
     print(f"\n{'='*70}")
+    ghd = args.gene_hidden_dim if args.gene_hidden_dim else args.hidden_dim
+    cnn_type = f"Dilated(d=1,2,4,8)" if args.use_dilated else "Standard([6,8,10,12])"
     print(f"DrugOperatorNet V2  (GeneMultiHeadReader + 模式对齐耦合)")
     print(f"  交互类型: {args.interaction_type} | rank={args.operator_rank} | "
           f"gene_len={args.gene_max_len}")
+    print(f"  CNN: {cnn_type} | gene_hidden_dim: {ghd} → proj → {args.hidden_dim}")
     print(f"  Device: {args.device} | Fold: {args.fold} | warmup={warmup_epochs}ep")
     print(f"{'='*70}\n")
 
@@ -639,6 +665,10 @@ if __name__ == '__main__':
 
     parser.add_argument('--gene_max_len',    type=int, default=3000,
                         help='基因 k-mer 序列长度（V2 默认 3000）')
+    parser.add_argument('--use_dilated',     action='store_true',
+                        help='空洞 CNN：kernel=6, dilation=[1,2,4,8]，感受野 ~46bp（默认标准 CNN ~17bp）')
+    parser.add_argument('--gene_hidden_dim', type=int, default=None,
+                        help='基因 CNN 内部通道宽（默认=hidden_dim）；设为 256 可减少信息压缩损失，池化后投影回 hidden_dim')
     parser.add_argument('--interaction_type', type=str, default='operator',
                         choices=['operator', 'concat', 'ortho_concat', 'hadamard'])
     parser.add_argument('--operator_rank',   type=int, default=8,
