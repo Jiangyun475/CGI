@@ -11,8 +11,47 @@
 | Targeted Pooling hybrid | 0.8911 | - | - | train_target_pool.py --pool_type hybrid |
 | MoE k=4 | 0.8935 | - | - | train_moe.py, lr=3e-4, ep80 |
 | MoE + Targeted Pooling k=4 | **0.8943** | 0.8857 | 0.8159 | train_moe_target.py, lr=2e-4, ep48 |
-| DrugOperatorNet (operator, r=8) | 0.8924 | - | - | New/train_drug_operator.py, 0.93M参数 |
+| DrugOperatorNet V1 (operator, r=8) | 0.8924 | - | - | New/train_drug_operator.py, 0.93M参数 |
+| DrugOperatorNet V2 (MultiHead, r=8) | 0.8923 | - | - | New/train_drug_operator_v2.py, gene_len=3000 |
 | **Morgan FP baseline (ECFP4)** | **0.8710** | - | - | train_morgan_baseline.py，固定指纹替代GIN |
+| OperatorMoE no_moe (lam_ortho=0.1) | 0.8923 | 0.8857 | 0.8117 | New/train_operator_moe.py --ablation no_moe, gene_len=1000, 918K参数 |
+| OperatorMoE no_moe (lam_ortho=0.0) | 0.8915 | 0.8852 | 0.8102 | 去掉正交正则，消融验证正交有效 |
+| OperatorMoE no_spectrum | 0.8917 | 0.8840 | 0.8128 | [V_g,V_c_perp]路由+GeneMultiHead，传统MoE逻辑 |
+| OperatorMoE full (谱驱动路由) | 0.8868 | 0.8800 | 0.8053 | spectrum→router→MoE+target_pool，最差 |
+| OperatorNet-TCN (d=1,2,4,8,16) | 训练中 | - | - | New/train_operator_tcn.py, RF=63kmer, 1.02M参数 |
+
+---
+
+## [2026-04-03] OperatorMoE 消融实验（MCF7 Fold0）
+
+**目的**：验证两种策略融合（DrugOperatorNet + MoE+Target）的各组件贡献。
+
+### 消融表
+
+| 变体 | AUC | 路由输入 | 分类头 | 靶向池化 |
+|------|-----|---------|--------|---------|
+| full | 0.8868 | spectrum[B,r] | MoE K=4 | ✅ |
+| no_spectrum | 0.8917 | [V_g,V_c_perp] | MoE K=4 | ✅ |
+| **no_moe** | **0.8923** | - | MLP | ❌ |
+| no_moe_noortho | 0.8915 | - | MLP | ❌ |
+
+### 结论
+
+1. **MoE 融合无效**：full（0.8868）是最差配置。delta_h 已经编码了交互信息，MoE 的 LB Loss 引入梯度冲突，反而降低性能。
+
+2. **纯算子（no_moe）最优**：AUC=0.8923，与 DrugOperatorNet V2 原始结果完全一致，验证了实现的一致性。参数量最少（918K）。
+
+3. **正交正则有效**：lam_ortho=0.1 vs 0.0，+0.0008 AUC（0.8923 vs 0.8915）。正交正则的主要价值在模式可解释性，而非性能。
+
+4. **谱路由不如直接分类**：spectrum 作为路由信号（no_spectrum 0.8917）不如直接用 [h_g_global, delta_h] 分类（no_moe 0.8923）。说明 spectrum 的信息更适合作为分类特征而非路由信号。
+
+5. **确定主模型**：DrugOperatorNet（no_moe）= train_operator_moe.py --ablation no_moe，或等价的 train_drug_operator_v2.py。
+
+### OperatorNet-TCN 初步观察
+
+- 收敛速度比 CNN 慢约 2 倍（Ep33 时 AUC=0.868 vs no_moe Ep33 AUC=0.889）
+- 5层串行残差块梯度路径更长，需要更多 epoch
+- 最终性能待定（继续训练中）
 
 ---
 
@@ -59,12 +98,12 @@ python train_moe_target.py \
 
 **结论：MoE+Target 在全部 4 个细胞系上一致优于 MoE（4/4），方向一致，非随机波动。**
 
-| 细胞系 | Morgan FP | MoE | MoE+Target | DrugOperator V1 |
-|--------|-----------|-----|------------|-----------------|
-| MCF7 | 0.8710 | 0.8935 | **0.8943** | 0.8924 |
-| A375 | 0.8870 | 0.9035 | **0.9040** | 待跑 |
-| A549 | 0.8432 | 0.8703 | **0.8718** | 待跑 |
-| VCAP | 0.7894 | 0.8132 | **0.8135** | 待跑 |
+| 细胞系 | Morgan FP | MoE | MoE+Target | Operator V1 | Operator V2 |
+|--------|-----------|-----|------------|-------------|-------------|
+| MCF7 | 0.8710 | 0.8935 | **0.8943** | 0.8924 | 0.8923 |
+| A375 | 0.8870 | 0.9035 | **0.9040** | 待跑 | 待跑 |
+| A549 | 0.8432 | 0.8703 | **0.8718** | 待跑 | 待跑 |
+| VCAP | 0.7894 | 0.8132 | **0.8135** | 待跑 | 待跑 |
 
 ---
 
