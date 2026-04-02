@@ -1,0 +1,14 @@
+{
+  "cell_line": "MCF7",
+  "fold": 0,
+  "model_path": "results_operator_moe/MCF7/no_moe_r8_k4_Fold0_v1.pt",
+  "n_val": 42276,
+  "n_pos": 20872,
+  "n_neg": 21404,
+  "auc": 0.8922750266926749,
+  "operator_rank": 8,
+  "spectrum_shape": [
+    42276,
+    8
+  ]
+}
