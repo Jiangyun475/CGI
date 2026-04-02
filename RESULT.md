@@ -12,7 +12,7 @@
 | MoE k=4 | 0.8935 | - | - | train_moe.py, lr=3e-4, ep80 |
 | MoE + Targeted Pooling k=4 | **0.8943** | 0.8857 | 0.8159 | train_moe_target.py, lr=2e-4, ep48 |
 | DrugOperatorNet (operator, r=8) | 0.8924 | - | - | New/train_drug_operator.py, 0.93M参数 |
-| Morgan FP baseline | 待跑 | - | - | train_morgan_baseline.py，ECFP4+GeneEncoderV1 |
+| **Morgan FP baseline (ECFP4)** | **0.8710** | - | - | train_morgan_baseline.py，固定指纹替代GIN |
 
 ---
 
@@ -59,12 +59,31 @@ python train_moe_target.py \
 
 **结论：MoE+Target 在全部 4 个细胞系上一致优于 MoE（4/4），方向一致，非随机波动。**
 
-| 细胞系 | Morgan FP | MoE | MoE+Target | DrugOperator |
-|--------|-----------|-----|------------|--------------|
-| MCF7 | 待跑 | 0.8935 | 0.8943 | 0.8924 |
-| A375 | 待跑 | 0.9035 | 0.9040 | 待跑 |
-| A549 | 待跑 | 0.8703 | 0.8718 | 待跑 |
-| VCAP | 待跑 | 0.8132 | 0.8135 | 待跑 |
+| 细胞系 | Morgan FP | MoE | MoE+Target | DrugOperator V1 |
+|--------|-----------|-----|------------|-----------------|
+| MCF7 | 0.8710 | 0.8935 | **0.8943** | 0.8924 |
+| A375 | 0.8870 | 0.9035 | **0.9040** | 待跑 |
+| A549 | 0.8432 | 0.8703 | **0.8718** | 待跑 |
+| VCAP | 0.7894 | 0.8132 | **0.8135** | 待跑 |
+
+---
+
+### [2026-04-02] Morgan FP Baseline 结果 (train_morgan_baseline.py)
+
+| 细胞系 | Morgan FP | MoE+Target | GIN 净增益 | 收敛 |
+|--------|-----------|------------|-----------|------|
+| MCF7 | 0.8710 | 0.8943 | **+0.0233** | ep25 |
+| A375 | 0.8870 | 0.9040 | **+0.0170** | ep25 |
+| A549 | 0.8432 | 0.8718 | **+0.0286** | ep25 |
+| VCAP | 0.7894 | 0.8135 | **+0.0241** | ep27 |
+
+**结论：GIN 端到端图学习在全部 4 个细胞系上一致优于固定 Morgan 指纹，净增益 +0.017~+0.029。**
+
+**分析**：
+- Morgan FP 是固定的 2048-bit ECFP4，无法从数据中优化化学表示；GIN 通过 3 层消息传递学到任务相关的原子-键交互模式
+- Chemical cold split 下，GIN 的优势尤为显著：固定指纹对未见化学品泛化性弱，GIN 通过局部结构归纳偏置更好泛化
+- VCAP 的 Morgan FP 仅 0.7894（最低），而 MoE+Target 仍能到 0.8135，说明即使在最难的任务上 GIN 也有显著贡献
+- 这是投稿 NC/NMI 的关键对比实验之一：证明端到端图学习优于传统化学指纹
 
 ---
 

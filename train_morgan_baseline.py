@@ -30,8 +30,10 @@ from torch.cuda.amp import GradScaler, autocast
 from torch.utils.data import DataLoader, Dataset
 from sklearn.metrics import roc_auc_score, average_precision_score, f1_score
 
-from rdkit import Chem
+from rdkit import Chem, RDLogger
 from rdkit.Chem import AllChem
+RDLogger.DisableLog('rdApp.*')   # 屏蔽 RDKit DEPRECATION WARNING
+RDLogger.DisableLog('rdApp.warning')
 
 # ================================================================
 # 0. K-mer 工具
@@ -109,17 +111,10 @@ class MorganGraphDataset(Dataset):
             self.morgan_fps = torch.load(cache_morgan)
         else:
             print(f"[{split.upper()}] 生成 Morgan 指纹（r={morgan_radius}, bits={morgan_bits}）...")
-            # SMILES → Morgan FP（通过 graph_indices 反查 smiles_to_graph 的 key）
-            # smiles_to_graph 的 key 就是 SMILES 字符串
-            smiles_list_all = {v: k for k, v in self.smiles_to_graph.items()
-                               if not isinstance(v, torch.Tensor)}
-            # 正确做法：直接从 data 里取 smiles（graph_indices 已经是 smiles key 的索引）
-            # smiles_to_graph 是 dict[smiles_str → graph]，graph_indices[i] 是 smiles key
+            # graph_indices 存的就是 SMILES 字符串，直接用
             fps = []
-            all_smiles_keys = list(self.smiles_to_graph.keys())
             for gi in tqdm(self.graph_indices):
-                smiles = gi  # graph_indices 存的就是 smiles 字符串 key
-                fps.append(smiles_to_morgan(smiles, morgan_radius, morgan_bits))
+                fps.append(smiles_to_morgan(gi, morgan_radius, morgan_bits))
             self.morgan_fps = torch.tensor(fps, dtype=torch.float32)
             torch.save(self.morgan_fps, cache_morgan)
 
