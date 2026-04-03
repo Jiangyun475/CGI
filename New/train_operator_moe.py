@@ -144,6 +144,12 @@ class OptimizedGraphDataset(Dataset):
         self.graph_indices = [self.data['graph_indices'][i] for i in self.indices]
         self.labels = torch.tensor(
             [self.data['labels'][i] for i in self.indices], dtype=torch.float32)
+        # zscore（用于 soft label）：如果数据集中有 zscore 字段则加载，否则为 None
+        if 'zscores' in self.data:
+            self.zscores = torch.tensor(
+                [self.data['zscores'][i] for i in self.indices], dtype=torch.float32)
+        else:
+            self.zscores = None
         gene_sequences = [self.data['gene_sequences'][i] for i in self.indices]
 
         suffix = '' if gene_max_len == 1000 else f'_len{gene_max_len}'
@@ -162,11 +168,14 @@ class OptimizedGraphDataset(Dataset):
         return len(self.labels)
 
     def __getitem__(self, idx):
-        return {
+        item = {
             'graph':    self.smiles_to_graph[self.graph_indices[idx]],
             'gene_ids': self.gene_ids[idx],
             'label':    self.labels[idx],
         }
+        if self.zscores is not None:
+            item['zscore'] = self.zscores[idx]
+        return item
 
 
 def collate_fn(batch):
@@ -190,6 +199,8 @@ def collate_fn(batch):
         'num_nodes_list': num_nodes_list,
         'gene_ids':       torch.stack([b['gene_ids'] for b in batch]),
         'label':          torch.stack([b['label']    for b in batch]),
+        'zscore':         torch.stack([b['zscore'] for b in batch])
+                          if 'zscore' in batch[0] else None,
     }
 
 
@@ -571,11 +582,57 @@ class OperatorMoE(nn.Module):
 
 
 # ================================================================
-# 7. 正则化损失
+# 7. 对比损失模块（谱方向感知 CL）
+# ================================================================
+
+class SpectrumDirectionCL(nn.Module):
+    """
+    方向感知对比损失，作用于交互谱 spectrum [B, r]。
+
+    直觉：正样本（CGI=1）的交互谱应该在谱空间中指向一个一致的"有效方向"，
+    负样本则应偏离该方向。这与 FocalDirectionAwareCL（旧框架 train_summean.py）
+    的设计思路一致，但直接作用于 DrugOperatorNet 输出的谱表示，而非
+    旧框架的 V_g / V_c_perp 中间变量。
+
+    与正交正则的区别：
+    - 正交正则（lam_ortho）约束 U 列向量互相正交，是结构约束（各模式独立）
+    - CL（lam_cl）约束正负样本在谱空间的方向分离，是语义约束（正负可区分）
+    两者互补，不重叠。
+
+    Loss = E[ focal_weight * relu(margin - score * target) ]
+    其中 score = spectrum @ d（谱在可学习方向上的投影）
+         target = +1（正样本），-1（负样本）
+         focal_weight = (diff + eps)^2（困难样本加权，类似 Focal Loss）
+    """
+    def __init__(self, rank: int, margin: float = 0.5):
+        super().__init__()
+        # 可学习的"有效方向"向量，维度与谱维度 r 一致
+        self.direction = nn.Parameter(torch.randn(rank))
+        self.margin    = margin
+
+    def forward(self, spectrum: torch.Tensor, labels: torch.Tensor) -> torch.Tensor:
+        """
+        Args:
+            spectrum: [B, r]  交互谱
+            labels:   [B]     二值标签（0/1）
+        Returns:
+            scalar loss
+        """
+        d       = F.normalize(self.direction, dim=0)           # [r] 单位方向向量
+        scores  = spectrum @ d                                  # [B] 每个样本在方向上的投影
+        targets = 2.0 * labels - 1.0                           # +1（正）/ -1（负）
+        diff    = F.relu(self.margin - scores * targets)        # 违反 margin 的程度
+        weight  = (diff + 1e-4) ** 2                           # 困难样本聚焦（类 Focal）
+        return (diff * weight).mean()
+
+
+# ================================================================
+# 8. 正则化损失
 # ================================================================
 
 def compute_losses(logits, labels, spectrum, sigma, U,
-                   route_weights, criterion, args):
+                   route_weights, criterion, args,
+                   cl_module=None, soft_labels=None):
     """
     计算总损失 = BCE + 算子正则 + MoE 负载均衡。
 
@@ -593,6 +650,15 @@ def compute_losses(logits, labels, spectrum, sigma, U,
     │       约束 r 个输出方向两两正交，确保各模式独立互不冗余。    │
     │       消融实验验证：lam_ortho=0.1 vs 0.0，+0.0008 AUC。     │
     │                                                              │
+    │ 4. 方向感知 CL（lam_cl > 0 时启用）                         │
+    │       loss_cl = SpectrumDirectionCL(spectrum, labels)        │
+    │       约束正负样本在谱空间方向分离，与正交正则互补。         │
+    │       注：CL 是语义约束，正交是结构约束，两者不重叠。        │
+    │                                                              │
+    │ 5. Soft Label BCE（--soft_label 时启用）                     │
+    │       soft = sigmoid((|zscore| - 2) / 0.5) × 方向           │
+    │       用 z-score 置信度替换硬标签，降低边界区噪声影响。      │
+    │                                                              │
     │ 3. MoE 负载均衡（仅 full/no_spectrum/no_target 模式）        │
     │    a) 宏观均衡（MSE）：路由均值接近均匀分布，防止专家坍缩。  │
     │    b) 负熵（0.1 权重）：最大化路由熵，鼓励路由多样性。       │
@@ -600,7 +666,12 @@ def compute_losses(logits, labels, spectrum, sigma, U,
     └──────────────────────────────────────────────────────────────┘
     """
     # ── 1. 主分类损失 ────────────────────────────────────────────
-    loss_bce = criterion(logits, labels)
+    if soft_labels is not None:
+        # Soft label BCE：用 z-score 置信度替换硬标签（0/1 → 连续值）
+        # soft_labels 已经是 [0,1] 之间的置信度，直接用 BCEWithLogitsLoss 的 per-sample 版本
+        loss_bce = F.binary_cross_entropy_with_logits(logits, soft_labels, reduction='mean')
+    else:
+        loss_bce = criterion(logits, labels)
 
     # ── 2. 算子正则 ──────────────────────────────────────────────
     # σ 稀疏：鼓励少数模式主导，其余接近 0
@@ -623,8 +694,13 @@ def compute_losses(logits, labels, spectrum, sigma, U,
         loss_entropy = -(route_weights * torch.log(route_weights + 1e-8)).sum(-1).mean()
         loss_lb      = loss_macro + 0.1 * loss_entropy
 
-    total = loss_bce + loss_reg + args.lam_balance * loss_lb
-    return total, loss_bce, loss_reg, loss_lb
+    # ── 4. 方向感知 CL（可选）────────────────────────────────────
+    loss_cl = torch.tensor(0.0, device=logits.device)
+    if cl_module is not None and spectrum is not None:
+        loss_cl = cl_module(spectrum, labels)
+
+    total = loss_bce + loss_reg + args.lam_balance * loss_lb + args.lam_cl * loss_cl
+    return total, loss_bce, loss_reg, loss_lb, loss_cl
 
 
 # ================================================================
@@ -664,9 +740,20 @@ def train(args):
         ablation=args.ablation,
     ).to(device)
 
-    n_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
+    # CL 模块（可选，lam_cl > 0 时启用）
+    cl_module = None
+    if args.lam_cl > 0:
+        cl_module = SpectrumDirectionCL(rank=args.operator_rank, margin=0.5).to(device)
+        print(f"  [CL] SpectrumDirectionCL 已启用，lam_cl={args.lam_cl}")
 
-    optimizer = torch.optim.AdamW(model.parameters(), lr=args.lr, weight_decay=1e-3)
+    n_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
+    if cl_module is not None:
+        n_params += sum(p.numel() for p in cl_module.parameters())
+
+    all_params = list(model.parameters())
+    if cl_module is not None:
+        all_params += list(cl_module.parameters())
+    optimizer = torch.optim.AdamW(all_params, lr=args.lr, weight_decay=1e-3)
     scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
         optimizer, mode='max', factor=0.5, patience=3)
     criterion = nn.BCEWithLogitsLoss()
@@ -696,7 +783,9 @@ def train(args):
             set_lr(optimizer, base_lr)
 
         model.train()
-        total_loss = total_bce = total_reg = total_lb = 0.0
+        if cl_module is not None:
+            cl_module.train()
+        total_loss = total_bce = total_reg = total_lb = total_cl = 0.0
 
         for batch in train_loader:
             optimizer.zero_grad()
@@ -706,28 +795,39 @@ def train(args):
             gene_ids    = batch['gene_ids'].to(device)
             labels      = batch['label'].to(device)
 
+            # Soft label：用 z-score 置信度替换硬标签（--soft_label 启用时）
+            soft_labels = None
+            if args.soft_label and batch['zscore'] is not None:
+                zscore = batch['zscore'].to(device)
+                # 置信度 = sigmoid((|z| - 2) / 0.5)：边界区 (|z|≈2) → 0.5，强信号 (|z|≥4) → 1.0
+                conf = torch.sigmoid((zscore.abs() - 2.0) / 0.5)
+                # 保持方向：正样本 soft=conf，负样本 soft=1-conf
+                soft_labels = labels * conf + (1 - labels) * (1 - conf)
+
             with autocast(enabled=args.use_amp):
                 logits, spectrum, sigma, U, _, route_weights = model(
                     gene_ids, x, edge_index, edge_attr, batch['num_nodes_list'])
-                loss, loss_bce, loss_reg, loss_lb = compute_losses(
+                loss, loss_bce, loss_reg, loss_lb, loss_cl = compute_losses(
                     logits, labels, spectrum, sigma, U,
-                    route_weights, criterion, args)
+                    route_weights, criterion, args,
+                    cl_module=cl_module, soft_labels=soft_labels)
 
             if args.use_amp:
                 scaler.scale(loss).backward()
                 scaler.unscale_(optimizer)
-                torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
+                torch.nn.utils.clip_grad_norm_(all_params, 1.0)
                 scaler.step(optimizer)
                 scaler.update()
             else:
                 loss.backward()
-                torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
+                torch.nn.utils.clip_grad_norm_(all_params, 1.0)
                 optimizer.step()
 
             total_loss += loss.item()
             total_bce  += loss_bce.item()
             total_reg  += loss_reg.item()
             total_lb   += loss_lb.item()
+            total_cl   += loss_cl.item()
 
         # 验证
         model.eval()
@@ -758,9 +858,10 @@ def train(args):
             scheduler.step(auroc)
 
         n = len(train_loader)
+        cl_str = f" CL:{total_cl/n:.4f}" if cl_module is not None else ""
         print(f"Ep {epoch+1:02d} [lr={get_lr(optimizer):.2e}] | "
               f"L:{total_loss/n:.3f} "
-              f"(BCE:{total_bce/n:.3f} REG:{total_reg/n:.4f} LB:{total_lb/n:.4f}) | "
+              f"(BCE:{total_bce/n:.3f} REG:{total_reg/n:.4f} LB:{total_lb/n:.4f}{cl_str}) | "
               f"VAL_AUC:{auroc:.4f} PRC:{auprc:.4f} F1:{f1:.4f}")
 
         if auroc > best_auroc:
@@ -817,6 +918,10 @@ if __name__ == '__main__':
                         help='U 列正交正则系数（建议 0.1，确保模式独立）')
     parser.add_argument('--lam_balance',     type=float, default=0.1,
                         help='MoE 负载均衡系数')
+    parser.add_argument('--lam_cl',          type=float, default=0.0,
+                        help='方向感知 CL 系数（0=禁用，建议先试 0.1）')
+    parser.add_argument('--soft_label',      action='store_true',
+                        help='用 z-score 置信度替换硬标签，降低边界区噪声影响')
 
     parser.add_argument('--ablation', type=str, default='full',
                         choices=['full', 'no_spectrum', 'no_moe', 'no_target'],
