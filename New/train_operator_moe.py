@@ -86,19 +86,44 @@ def encode_kmer_sequence(sequence: str, k: int = 6, max_len: int = 1000) -> list
 
 
 def scatter_softmax(scores, batch_idx):
-    """图内原子级 softmax，纯 PyTorch 实现。"""
+    """
+    图内原子级 softmax（纯 PyTorch，无需 torch_geometric）。
+
+    问题背景：一个 batch 中，不同分子的原子被打包成连续的 [N_total] 张量，
+    batch_idx 记录每个原子属于哪个分子（例如 [0,0,0,1,1,2,2,2,2]）。
+    普通 softmax 会对整个 batch 归一化，而我们需要每个分子内部独立归一化。
+
+    实现思路（数值稳定版 softmax）：
+      1. 找到每个分子内分数的最大值（用于减去，防止 exp 溢出）
+      2. 计算 exp(score - max)
+      3. 在每个分子内求和
+      4. 除以分子内的和
+
+    Args:
+      scores:    [N_total]，每个原子的原始得分
+      batch_idx: [N_total]，每个原子对应的图编号（0-indexed）
+
+    Returns:
+      [N_total]，每个原子在其所属图内的 softmax 权重
+    """
     scores = scores.float()
+    # 找每个分子内的最大分数（数值稳定）
     max_scores = torch.zeros(
         batch_idx.max().item() + 1, device=scores.device
     ).index_reduce_(0, batch_idx, scores, 'amax', include_self=True)
-    exp_scores = torch.exp(scores - max_scores[batch_idx])
+    exp_scores = torch.exp(scores - max_scores[batch_idx])  # 减去最大值后 exp
+    # 在每个分子内累加 exp 值
     exp_sum = torch.zeros(
         batch_idx.max().item() + 1, device=scores.device
     ).index_add_(0, batch_idx, exp_scores)
-    return exp_scores / (exp_sum[batch_idx] + 1e-8)
+    return exp_scores / (exp_sum[batch_idx] + 1e-8)  # 归一化，+eps 防止除零
 
 
 def scatter_add(src, batch_idx, dim_size):
+    """
+    将 [N_total, H] 按 batch_idx 聚合为 [B, H]（图级求和池化）。
+    等价于 torch_geometric 的 scatter(src, batch_idx, dim=0, reduce='sum')。
+    """
     out = torch.zeros(dim_size, src.size(1), device=src.device, dtype=src.dtype)
     return out.index_add_(0, batch_idx, src)
 
@@ -232,16 +257,32 @@ class GeneMultiHeadReader(nn.Module):
 # ================================================================
 
 class GINLayer(nn.Module):
+    """
+    图同构网络（Graph Isomorphism Network）单层消息传递。
+
+    GIN 公式：h_v^{(l+1)} = MLP( h_v^{(l)} + Σ_{u∈N(v)} msg(h_u, e_{uv}) )
+      - 对每条边 (u→v)：msg = ReLU(h_u + W_edge * e_{uv})
+      - 对每个节点 v：聚合所有入边消息后 + 自身，再过 MLP
+
+    与简单 GCN 的区别：MLP（而非单线性层）确保区分不同邻域结构。
+    边特征（bond type, aromaticity 等 4-dim）通过 edge_proj 融入消息。
+    """
     def __init__(self, dim, edge_dim=4):
         super().__init__()
+        # 节点更新 MLP：BN 确保训练稳定
         self.mlp = nn.Sequential(
             nn.Linear(dim, dim), nn.BatchNorm1d(dim), nn.ReLU(), nn.Linear(dim, dim))
+        # 边特征投影：将 4-dim 键特征映射到 hidden_dim
         self.edge_proj = nn.Linear(edge_dim, dim)
 
     def forward(self, x, edge_index, edge_attr):
-        row, col = edge_index
-        msg = F.relu(x[row] + self.edge_proj(edge_attr))
-        return self.mlp(x + torch.zeros_like(x).index_add_(0, col, msg))
+        row, col = edge_index  # row=源原子, col=目标原子（u→v 中 u=row, v=col）
+        # 消息：源原子嵌入 + 边嵌入，非线性激活
+        msg = F.relu(x[row] + self.edge_proj(edge_attr))  # [E, H]
+        # 聚合：将消息累加到目标原子（scatter_add，按 col 聚合）
+        agg = torch.zeros_like(x).index_add_(0, col, msg)  # [N, H]
+        # 更新：节点自身 + 聚合消息，再过 MLP（残差形式）
+        return self.mlp(x + agg)
 
 
 class AtomEncoder(nn.Module):
@@ -266,33 +307,61 @@ class AtomEncoder(nn.Module):
 # ================================================================
 
 class PharmacophoreExtractor(nn.Module):
-    """r 个可学习 query × 原子交叉注意力 → r 个药效团嵌入。"""
+    """
+    药效团提取器：r 个可学习 query slot × 原子交叉注意力 → r 个药效团嵌入。
+
+    核心思想：
+      每个 slot 是一个"药效团探测器"，通过与所有原子做注意力，
+      聚焦在分子中最能代表某种药效团特征的原子子集上。
+
+      Slot s 的计算：
+        scores_s = (K @ q_s) / √d          [N_total]（每个原子与 slot s 的相似度）
+        α_s      = scatter_softmax(scores_s) [N_total]（分子内归一化）
+        pharma_s = Σ_i α_{s,i} * V_i        [B, H]（注意力加权原子值）
+
+      r 个 slot 并行计算，输出 pharma [B, r, H]。
+
+    可解释性：
+      scores_all [N_total, r] 中，每列对应一个药效团探测器。
+      原子 i 在 slot s 上的分数 α_{s,i} = 该原子对药效团 s 的贡献权重。
+      → 可以在分子图上按 α 着色，得到药效团热图（见 visualize_pharmacophore.py）。
+    """
     def __init__(self, hidden_dim, num_slots):
         super().__init__()
         self.num_slots = num_slots
+        # r 个可学习查询向量，随机初始化（小方差）
         self.queries  = nn.Parameter(torch.randn(num_slots, hidden_dim) * 0.02)
-        self.key_proj = nn.Linear(hidden_dim, hidden_dim)
-        self.val_proj = nn.Linear(hidden_dim, hidden_dim)
+        self.key_proj = nn.Linear(hidden_dim, hidden_dim)  # 原子 → Key
+        self.val_proj = nn.Linear(hidden_dim, hidden_dim)  # 原子 → Value
         self.norm     = nn.LayerNorm(hidden_dim)
 
     def forward(self, atom_h, batch_idx, num_graphs):
+        """
+        Args:
+          atom_h:    [N_total, H]  所有分子原子嵌入（打包）
+          batch_idx: [N_total]     每个原子所属分子的编号
+          num_graphs: int          batch 中分子数 B
+
+        Returns:
+          pharma:     [B, r, H]   r 个药效团嵌入
+          scores_all: [N_total, r] 每个原子对每个 slot 的原始得分（可解释性用）
+        """
         d = atom_h.shape[1]
-        K = self.key_proj(atom_h)                               # [N, H]
-        V = self.val_proj(atom_h)                               # [N, H]
-        scores_all = (K @ self.queries.T) / math.sqrt(d)       # [N, r]
+        K = self.key_proj(atom_h)                               # [N_total, H]
+        V = self.val_proj(atom_h)                               # [N_total, H]
+        # 所有原子与所有 slot 的相似度（一次矩阵乘）
+        scores_all = (K @ self.queries.T) / math.sqrt(d)       # [N_total, r]
 
         pharma = torch.zeros(num_graphs, self.num_slots, d,
                              device=atom_h.device, dtype=atom_h.dtype)
-        # 同时保存 atom attention weights 供可解释性分析
-        atom_attn = torch.zeros(num_graphs, self.num_slots, atom_h.shape[0] // num_graphs,
-                                device=atom_h.device, dtype=atom_h.dtype) \
-            if False else None  # 训练时不存，eval 时由外部控制
 
+        # 逐 slot 做图内 softmax + 加权聚合（为保证每个分子内独立归一化）
         for s in range(self.num_slots):
-            alpha = scatter_softmax(scores_all[:, s], batch_idx)
+            alpha = scatter_softmax(scores_all[:, s], batch_idx)  # [N_total]，图内归一化
+            # α 加权的 Value 聚合到对应分子
             pharma[:, s].index_add_(0, batch_idx, V * alpha.unsqueeze(-1))
 
-        return self.norm(pharma), scores_all  # [B, r, H], [N, r]
+        return self.norm(pharma), scores_all  # [B, r, H], [N_total, r]
 
 
 # ================================================================
@@ -301,35 +370,67 @@ class PharmacophoreExtractor(nn.Module):
 
 class PerturbationOperator(nn.Module):
     """
-    T = I + Σ_k σ_k * u_k ⊗ v_k^T
-    coupling_k = v_k · h_g_modes_k  （模式对齐，V2设计）
-    spectrum_k = σ_k * coupling_k
-    delta_h = Σ_k spectrum_k * u_k
+    扰动算子：将药物编码为基因表达空间上的低秩扰动。
+
+    数学形式（秩-r 算子）：
+      T = I + Σ_{k=1}^{r} σ_k · u_k ⊗ v_k^T
+
+    各符号含义：
+      u_k ∈ R^H  : 第 k 个药效团的"输出方向"（扰动后的方向）
+      v_k ∈ R^H  : 第 k 个药效团的"输入方向"（对哪类基因特征敏感）
+      σ_k ∈ [-1,1]: 第 k 个模式的强度（Tanh 保证有界，正=激活，负=抑制）
+
+    模式对齐耦合（V2 设计，区别于 V1）：
+      coupling_k = v_k · h_g_modes_k   ← 药物方向 v_k 与基因专属视角 k 的内积
+                                          衡量"药物此模式与基因此方向的对齐程度"
+      spectrum_k = σ_k × coupling_k    ← 强度 × 对齐 = 有效交互谱
+
+    实际扰动：
+      Δh = Σ_k spectrum_k · u_k        ← 加权叠加各模式的输出方向
+      （对应 T 作用到 h_g 后的增量部分）
+
+    可解释性：
+      spectrum [B, r] 是该（药物, 基因）对的"机理指纹"，
+      可直接分析正/负样本区别、药物聚类等（见 visualize_spectrum.py）。
     """
     def __init__(self, hidden_dim):
         super().__init__()
-        self.to_u     = nn.Sequential(
+        # 从药效团嵌入学习输出方向 u（两层 MLP + 归一化）
+        self.to_u = nn.Sequential(
             nn.Linear(hidden_dim, hidden_dim), nn.ReLU(),
             nn.Linear(hidden_dim, hidden_dim))
-        self.to_v     = nn.Sequential(
+        # 从药效团嵌入学习输入方向 v（同上）
+        self.to_v = nn.Sequential(
             nn.Linear(hidden_dim, hidden_dim), nn.ReLU(),
             nn.Linear(hidden_dim, hidden_dim))
+        # 从药效团嵌入学习模式强度 σ（瓶颈 MLP + Tanh → 有界 [-1, 1]）
         self.to_sigma = nn.Sequential(
             nn.Linear(hidden_dim, hidden_dim // 4), nn.ReLU(),
             nn.Linear(hidden_dim // 4, 1), nn.Tanh())
 
     def forward(self, pharma_emb, h_g_modes):
         """
-        pharma_emb: [B, r, H]
-        h_g_modes:  [B, r, H]
-        Returns: delta_h [B,H], spectrum [B,r], sigma [B,r], U [B,r,H]
-        """
-        U     = F.normalize(self.to_u(pharma_emb), dim=-1)  # [B, r, H]
-        V     = F.normalize(self.to_v(pharma_emb), dim=-1)  # [B, r, H]
-        sigma = self.to_sigma(pharma_emb).squeeze(-1)        # [B, r]
+        Args:
+          pharma_emb: [B, r, H]  药效团嵌入（来自 PharmacophoreExtractor）
+          h_g_modes:  [B, r, H]  基因多视角编码（来自 GeneMultiHeadReader）
+                                  第 k 个视角对应第 k 个药效团模式
 
-        coupling = (V * h_g_modes).sum(-1)                   # [B, r]
-        spectrum = sigma * coupling                           # [B, r]
+        Returns:
+          delta_h:  [B, H]    净扰动向量（算子增量部分）
+          spectrum: [B, r]    交互谱（可解释性核心）
+          sigma:    [B, r]    各模式强度
+          U:        [B, r, H] 各模式输出方向（归一化）
+        """
+        # 学习输出/输入方向并归一化（单位向量，使得 coupling 仅反映方向相似度）
+        U     = F.normalize(self.to_u(pharma_emb), dim=-1)  # [B, r, H]，输出方向
+        V     = F.normalize(self.to_v(pharma_emb), dim=-1)  # [B, r, H]，输入方向
+        sigma = self.to_sigma(pharma_emb).squeeze(-1)        # [B, r]，模式强度
+
+        # V2 核心：模式对齐耦合（逐元素乘 + 在 H 维求和 = 内积）
+        coupling = (V * h_g_modes).sum(-1)                   # [B, r]，方向对齐度
+        spectrum = sigma * coupling                           # [B, r]，有效交互谱
+
+        # 求和得净扰动：Δh = Σ_k spectrum_k * u_k
         delta_h  = (spectrum.unsqueeze(-1) * U).sum(dim=1)  # [B, H]
 
         return delta_h, spectrum, sigma, U
@@ -475,24 +576,52 @@ class OperatorMoE(nn.Module):
 
 def compute_losses(logits, labels, spectrum, sigma, U,
                    route_weights, criterion, args):
+    """
+    计算总损失 = BCE + 算子正则 + MoE 负载均衡。
+
+    各损失项说明：
+    ┌──────────────────────────────────────────────────────────────┐
+    │ 1. BCE（分类主损失）                                          │
+    │    标准二元交叉熵，优化预测概率与真实标签的对齐。             │
+    │                                                              │
+    │ 2. 算子正则（仅 operator 模式）                              │
+    │    a) σ 稀疏（lam_sparse）：                                 │
+    │       loss_sparse = E[|σ_k|]                                 │
+    │       让大多数模式保持"静默"，少数主导模式激活，提升可解释性。│
+    │    b) U 正交（lam_ortho_modes）：                            │
+    │       loss_ortho = ||UᵀU - I||²_F                           │
+    │       约束 r 个输出方向两两正交，确保各模式独立互不冗余。    │
+    │       消融实验验证：lam_ortho=0.1 vs 0.0，+0.0008 AUC。     │
+    │                                                              │
+    │ 3. MoE 负载均衡（仅 full/no_spectrum/no_target 模式）        │
+    │    a) 宏观均衡（MSE）：路由均值接近均匀分布，防止专家坍缩。  │
+    │    b) 负熵（0.1 权重）：最大化路由熵，鼓励路由多样性。       │
+    │    注：no_moe 模式无路由，此项为 0。                         │
+    └──────────────────────────────────────────────────────────────┘
+    """
+    # ── 1. 主分类损失 ────────────────────────────────────────────
     loss_bce = criterion(logits, labels)
 
-    # 算子正则：σ 稀疏 + U 列正交
+    # ── 2. 算子正则 ──────────────────────────────────────────────
+    # σ 稀疏：鼓励少数模式主导，其余接近 0
     loss_sparse = sigma.abs().mean()
-    U_n   = F.normalize(U, dim=-1)
-    gram  = torch.bmm(U_n, U_n.transpose(1, 2))
-    eye   = torch.eye(U.shape[1], device=U.device).unsqueeze(0)
-    loss_ortho = (gram - eye).pow(2).mean()
+    # U 正交：Gram 矩阵 UᵀU 应接近单位阵（各列两两正交且单位长度）
+    U_n   = F.normalize(U, dim=-1)                             # [B, r, H]，归一化
+    gram  = torch.bmm(U_n, U_n.transpose(1, 2))               # [B, r, r]，Gram 矩阵
+    eye   = torch.eye(U.shape[1], device=U.device).unsqueeze(0)  # [1, r, r]
+    loss_ortho = (gram - eye).pow(2).mean()                    # F-范数²
     loss_reg   = args.lam_sparse * loss_sparse + args.lam_ortho_modes * loss_ortho
 
-    # MoE 负载均衡（仅 full / no_spectrum / no_target 模式）
+    # ── 3. MoE 负载均衡（no_moe 时跳过）────────────────────────
     loss_lb = torch.tensor(0.0, device=logits.device)
     if route_weights is not None and args.ablation != 'no_moe':
-        mean_route = route_weights.mean(dim=0)
-        uniform    = torch.ones_like(mean_route) / args.num_experts
-        loss_macro = F.mse_loss(mean_route, uniform)
+        mean_route = route_weights.mean(dim=0)                  # [K]，batch 内路由均值
+        uniform    = torch.ones_like(mean_route) / args.num_experts  # [K]，均匀分布
+        # 宏观均衡：batch 级路由接近均匀分布
+        loss_macro   = F.mse_loss(mean_route, uniform)
+        # 样本级路由熵（负号→最大化熵→多样性路由）
         loss_entropy = -(route_weights * torch.log(route_weights + 1e-8)).sum(-1).mean()
-        loss_lb    = loss_macro + 0.1 * loss_entropy
+        loss_lb      = loss_macro + 0.1 * loss_entropy
 
     total = loss_bce + loss_reg + args.lam_balance * loss_lb
     return total, loss_bce, loss_reg, loss_lb

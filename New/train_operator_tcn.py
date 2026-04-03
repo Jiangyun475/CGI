@@ -432,9 +432,15 @@ class OperatorNetTCN(nn.Module):
 # ================================================================
 
 def compute_reg_loss(sigma, U, lam_sparse, lam_ortho):
+    """
+    算子正则化（与 train_operator_moe.py 一致）：
+      σ 稀疏（lam_sparse）：促使少数模式主导，其余静默。
+      U 正交（lam_ortho）：||UᵀU - I||²，使 r 个输出方向两两正交互不冗余。
+      两项共同保证交互谱 spectrum 的稀疏性和模式独立性（可解释性前提）。
+    """
     loss_sparse = sigma.abs().mean()
-    U_n  = F.normalize(U, dim=-1)
-    gram = torch.bmm(U_n, U_n.transpose(1, 2))
+    U_n  = F.normalize(U, dim=-1)                               # 归一化到单位球
+    gram = torch.bmm(U_n, U_n.transpose(1, 2))                 # [B, r, r]
     eye  = torch.eye(U.shape[1], device=U.device).unsqueeze(0)
     loss_ortho = (gram - eye).pow(2).mean()
     return lam_sparse * loss_sparse + lam_ortho * loss_ortho

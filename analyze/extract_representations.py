@@ -147,25 +147,40 @@ class PharmacophoreExtractor(nn.Module):
         self.norm = nn.LayerNorm(hidden_dim)
 
     def forward(self, atom_h, batch_idx, num_graphs, return_attn=False):
+        """
+        Args:
+          atom_h:      [N_total, H]  所有分子原子嵌入
+          batch_idx:   [N_total]     每个原子所属分子编号
+          num_graphs:  int           batch 分子数 B
+          return_attn: bool          是否返回原子注意力权重（推理/可视化时用）
+
+        Returns:
+          pharma:      [B, r, H]    r 个药效团嵌入（归一化后）
+          scores_all:  [N_total, r] 原子对每个 slot 的原始得分
+          atom_attn:   [N_total, r] 图内归一化的注意力权重（仅 return_attn=True 时）
+        """
         d = atom_h.shape[1]
-        K = self.key_proj(atom_h)
-        V = self.val_proj(atom_h)
-        scores_all = (K @ self.queries.T) / math.sqrt(d)  # [N_total, r]
+        K = self.key_proj(atom_h)                              # [N_total, H]
+        V = self.val_proj(atom_h)                              # [N_total, H]
+        # 所有原子 × 所有 slot 的相似度（一次矩阵乘，效率高）
+        scores_all = (K @ self.queries.T) / math.sqrt(d)      # [N_total, r]
 
         pharma = torch.zeros(num_graphs, self.num_slots, d,
                              device=atom_h.device, dtype=atom_h.dtype)
 
-        # 逐 slot 计算 scatter softmax 注意力
-        attn_weights = []  # 每个 slot 的注意力权重
+        # 逐 slot 做图内 softmax + 加权聚合
+        # 为保证每个分子内独立归一化，必须用 scatter_softmax（不能用普通 softmax）
+        attn_weights = []
         for s in range(self.num_slots):
-            alpha = scatter_softmax(scores_all[:, s], batch_idx)  # [N_total]
+            alpha = scatter_softmax(scores_all[:, s], batch_idx)  # [N_total]，图内归一化
             pharma[:, s].index_add_(0, batch_idx, V * alpha.unsqueeze(-1))
             if return_attn:
-                attn_weights.append(alpha)  # [N_total]
+                attn_weights.append(alpha)  # 保存每个 slot 的原子权重
 
         if return_attn:
+            # [N_total, r]：每个原子在每个药效团 slot 上的注意力权重
+            # → 用于 visualize_pharmacophore.py 的分子热图
             return self.norm(pharma), scores_all, torch.stack(attn_weights, dim=1)
-            # atom_attn: [N_total, r]
         return self.norm(pharma), scores_all
 
 
@@ -207,30 +222,47 @@ class DrugOperatorNet(nn.Module):
             nn.Dropout(dropout), nn.Linear(H, 1))
 
     def forward_with_attn(self, gene_ids, x, edge_index, edge_attr, num_nodes_list):
-        """完整前向，返回所有中间表示（推理用）"""
+        """
+        完整前向传播，返回所有中间表示（仅推理时调用，训练不用）。
+
+        与训练时 forward 的区别：
+          1. 调用 PharmacophoreExtractor(return_attn=True) 获取原子注意力权重
+          2. 返回 dict 包含所有可解释性所需的中间量
+
+        返回 dict 各字段：
+          preds:          [B]          预测概率
+          spectrum:       [B, r]       交互谱（药效团-基因耦合强度）
+          sigma:          [B, r]       各模式幅度（Tanh 输出，有界）
+          gene_attn:      [B, r, L']   基因序列注意力权重（L'=卷积后序列长度）
+          atom_attn:      [N_total, r] 原子对每个药效团 slot 的注意力（图内归一化）
+          batch_idx:      [N_total]    每个原子所属分子编号（拆分用）
+          num_nodes_list: [B]          每个分子的原子数（atom_attn 拆分用）
+        """
         device = x.device
         B = len(num_nodes_list)
         num_nodes_t = torch.tensor(num_nodes_list, device=device)
+        # batch_idx[i] = 第 i 个原子属于第几个分子（0-indexed）
         batch_idx = torch.repeat_interleave(torch.arange(B, device=device), num_nodes_t)
 
-        # 基因编码
+        # ① 基因编码：r 个多头视角
         h_g_modes, h_g_global, gene_attn = self.gene_enc(gene_ids)
+        # gene_attn: [B, r, L'] → 基因序列上哪些位置对哪个模式最重要
 
-        # 原子编码
-        atom_h = self.atom_enc(x, edge_index, edge_attr)
+        # ② 原子编码：3 层 GIN
+        atom_h = self.atom_enc(x, edge_index, edge_attr)  # [N_total, H]
 
-        # 药效团提取（带注意力）
-        pharma_emb, atom_scores_raw, atom_attn = self.pharma_ext(
+        # ③ 药效团提取（带注意力权重输出）
+        pharma_emb, _, atom_attn = self.pharma_ext(
             atom_h, batch_idx, B, return_attn=True)
-        # atom_attn: [N_total, r] （每个原子对每个模式的注意力）
+        # atom_attn: [N_total, r] → 原子 i 对药效团 slot s 的贡献权重
 
-        # 扰动算子
+        # ④ 扰动算子：计算交互谱和净扰动
         delta_h, spectrum, sigma, U = self.perturb_op(pharma_emb, h_g_modes)
 
-        # 分类
-        features = torch.cat([h_g_global, delta_h], dim=-1)
-        logits = self.classifier(features).squeeze(-1)
-        preds = torch.sigmoid(logits)
+        # ⑤ 分类
+        features = torch.cat([h_g_global, delta_h], dim=-1)  # [B, 2H]
+        logits = self.classifier(features).squeeze(-1)        # [B]
+        preds = torch.sigmoid(logits)                         # [B]，概率值
 
         return {
             'preds': preds,                     # [B]
