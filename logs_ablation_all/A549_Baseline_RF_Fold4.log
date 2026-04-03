@@ -1,0 +1,24 @@
+[Parallel(n_jobs=-1)]: Using backend ThreadingBackend with 48 concurrent workers.
+[Parallel(n_jobs=-1)]: Done 104 tasks      | elapsed:   47.8s
+[Parallel(n_jobs=-1)]: Done 200 out of 200 | elapsed:  1.3min finished
+[Parallel(n_jobs=48)]: Using backend ThreadingBackend with 48 concurrent workers.
+[Parallel(n_jobs=48)]: Done 104 tasks      | elapsed:    1.3s
+[Parallel(n_jobs=48)]: Done 200 out of 200 | elapsed:    1.8s finished
+
+============================================================
+🚀 ML 基准 | 细胞系: A549 | Fold: 4 | 模型: RF
+============================================================
+⚡ 加载全量 ML 特征缓存: ml_features_full.pkl
+
+Fold 4 数据切分完成:
+  X_train: (179512, 5120) | 正样本率: 0.492
+  X_val:   (43679, 5120)   | 正样本率: 0.496
+
+🌲 训练 Random Forest ...
+
+==================================================
+📊 [Random Forest | Fold 4]
+   AUROC : 0.8188
+   AUPRC : 0.8035
+   F1    : 0.7496
+==================================================

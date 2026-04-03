@@ -1,0 +1,20 @@
+[TRAIN] ⚡ 加载 K-mer 缓存: kmer_cache_fold2_train.pt
+[VAL] ⚡ 加载 K-mer 缓存: kmer_cache_fold2_val.pt
+
+🚀 论文训练版本启动 | Device: cuda:2 | AMP: True
+📊 [消融配置] 混合池化: hybrid | 正交: False | 对比学习: False
+Ep 01 | L: 0.506 (BCE:0.506 Var:0.000 CL:0.000) | VAL_AUC: 0.9627 | PRC: 0.9550 | F1: 0.9045
+Ep 02 | L: 0.251 (BCE:0.251 Var:0.000 CL:0.000) | VAL_AUC: 0.9686 | PRC: 0.9653 | F1: 0.9029
+Ep 03 | L: 0.230 (BCE:0.230 Var:0.000 CL:0.000) | VAL_AUC: 0.9676 | PRC: 0.9642 | F1: 0.9026
+Ep 04 | L: 0.226 (BCE:0.226 Var:0.000 CL:0.000) | VAL_AUC: 0.9678 | PRC: 0.9657 | F1: 0.9061
+Ep 05 | L: 0.215 (BCE:0.215 Var:0.000 CL:0.000) | VAL_AUC: 0.9689 | PRC: 0.9665 | F1: 0.9021
+Ep 06 | L: 0.211 (BCE:0.211 Var:0.000 CL:0.000) | VAL_AUC: 0.9688 | PRC: 0.9677 | F1: 0.9062
+Ep 07 | L: 0.205 (BCE:0.205 Var:0.000 CL:0.000) | VAL_AUC: 0.9673 | PRC: 0.9668 | F1: 0.9039
+Ep 08 | L: 0.201 (BCE:0.201 Var:0.000 CL:0.000) | VAL_AUC: 0.9686 | PRC: 0.9667 | F1: 0.9093
+Ep 09 | L: 0.198 (BCE:0.198 Var:0.000 CL:0.000) | VAL_AUC: 0.9682 | PRC: 0.9668 | F1: 0.9073
+Ep 10 | L: 0.184 (BCE:0.184 Var:0.000 CL:0.000) | VAL_AUC: 0.9661 | PRC: 0.9654 | F1: 0.9055
+Ep 11 | L: 0.182 (BCE:0.182 Var:0.000 CL:0.000) | VAL_AUC: 0.9665 | PRC: 0.9641 | F1: 0.9075
+Ep 12 | L: 0.182 (BCE:0.182 Var:0.000 CL:0.000) | VAL_AUC: 0.9660 | PRC: 0.9647 | F1: 0.9053
+Ep 13 | L: 0.180 (BCE:0.180 Var:0.000 CL:0.000) | VAL_AUC: 0.9670 | PRC: 0.9660 | F1: 0.9088
+Ep 14 | L: 0.172 (BCE:0.172 Var:0.000 CL:0.000) | VAL_AUC: 0.9665 | PRC: 0.9659 | F1: 0.9097
+Ep 15 | L: 0.173 (BCE:0.173 Var:0.000 CL:0.000) | VAL_AUC: 0.9669 | PRC: 0.9663 | F1: 0.9109

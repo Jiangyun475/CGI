@@ -1,0 +1,47 @@
+
+============================================================
+🚀 ML 基准 | 细胞系: HUVEC | Fold: 0 | 模型: XGB
+============================================================
+⚡ 加载全量 ML 特征缓存: ml_features_full.pkl
+
+Fold 0 数据切分完成:
+  X_train: (14032, 5120) | 正样本率: 0.471
+  X_val:   (3532, 5120)   | 正样本率: 0.497
+
+⚡ 训练 XGBoost ...
+Traceback (most recent call last):
+  File "/home/data/jiangyun/cgi_data_pipeline5/train_baseline_ml.py", line 260, in <module>
+    run(parser.parse_args())
+  File "/home/data/jiangyun/cgi_data_pipeline5/train_baseline_ml.py", line 245, in run
+    clf.fit(X_train, y_train,
+  File "/home/jiangyun/miniconda3/envs/Rdpy310/lib/python3.12/site-packages/xgboost/core.py", line 751, in inner_f
+    return func(**kwargs)
+           ^^^^^^^^^^^^^^
+  File "/home/jiangyun/miniconda3/envs/Rdpy310/lib/python3.12/site-packages/xgboost/sklearn.py", line 1806, in fit
+    self._Booster = train(
+                    ^^^^^^
+  File "/home/jiangyun/miniconda3/envs/Rdpy310/lib/python3.12/site-packages/xgboost/core.py", line 751, in inner_f
+    return func(**kwargs)
+           ^^^^^^^^^^^^^^
+  File "/home/jiangyun/miniconda3/envs/Rdpy310/lib/python3.12/site-packages/xgboost/training.py", line 200, in train
+    bst.update(dtrain, iteration=i, fobj=obj)
+  File "/home/jiangyun/miniconda3/envs/Rdpy310/lib/python3.12/site-packages/xgboost/core.py", line 2390, in update
+    _check_call(
+  File "/home/jiangyun/miniconda3/envs/Rdpy310/lib/python3.12/site-packages/xgboost/core.py", line 324, in _check_call
+    raise XGBoostError(py_str(_LIB.XGBGetLastError()))
+xgboost.core.XGBoostError: [23:31:04] /__w/xgboost/xgboost/src/common/device_vector.cu:23: Memory allocation error on worker 0: std::bad_alloc: cudaErrorMemoryAllocation: out of memory
+- Free memory: 10.5217GB
+- Requested memory: 16GB
+
+Stack trace:
+  [bt] (0) /home/jiangyun/miniconda3/envs/Rdpy310/lib/python3.12/site-packages/xgboost/lib/libxgboost.so(+0x2c1a8c) [0x7f864c32da8c]
+  [bt] (1) /home/jiangyun/miniconda3/envs/Rdpy310/lib/python3.12/site-packages/xgboost/lib/libxgboost.so(+0xb7cd33) [0x7f864cbe8d33]
+  [bt] (2) /home/jiangyun/miniconda3/envs/Rdpy310/lib/python3.12/site-packages/xgboost/lib/libxgboost.so(+0xd5761a) [0x7f864cdc361a]
+  [bt] (3) /home/jiangyun/miniconda3/envs/Rdpy310/lib/python3.12/site-packages/xgboost/lib/libxgboost.so(+0x1420ea7) [0x7f864d48cea7]
+  [bt] (4) /home/jiangyun/miniconda3/envs/Rdpy310/lib/python3.12/site-packages/xgboost/lib/libxgboost.so(+0x142135c) [0x7f864d48d35c]
+  [bt] (5) /home/jiangyun/miniconda3/envs/Rdpy310/lib/python3.12/site-packages/xgboost/lib/libxgboost.so(+0x1421ba9) [0x7f864d48dba9]
+  [bt] (6) /home/jiangyun/miniconda3/envs/Rdpy310/lib/python3.12/site-packages/xgboost/lib/libxgboost.so(+0x14277bd) [0x7f864d4937bd]
+  [bt] (7) /home/jiangyun/miniconda3/envs/Rdpy310/lib/python3.12/site-packages/xgboost/lib/libxgboost.so(+0x142a445) [0x7f864d496445]
+  [bt] (8) /home/jiangyun/miniconda3/envs/Rdpy310/lib/python3.12/site-packages/xgboost/lib/libxgboost.so(+0x6dc8a1) [0x7f864c7488a1]
+
+

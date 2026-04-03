@@ -1,0 +1,85 @@
+================================================
+  DrugOperatorNet 可视化分析流水线
+  细胞系: A549 | Fold: 0 | Device: cuda:2
+  模型: results_operator_moe/A549/no_moe_r8_k4_Fold0_v1.pt
+  缓存: analyze/cache/A549
+  图像: analyze/figures/A549
+================================================
+
+[Step 1/3] 提取模型中间表示...
+  (spectrum, atom_attn, gene_attn → analyze/cache/A549/)
+
+[1/4] 加载验证集: /home/data/jiangyun/cgi_data_pipeline/outputs/datasets_classification_test_recommended/A549 fold=0
+  验证集大小: 44858
+
+[2/4] 加载模型: results_operator_moe/A549/no_moe_r8_k4_Fold0_v1.pt
+  参数量: 918,210
+
+[3/4] 提取表示...
+Extracting:   0%|          | 0/176 [00:00<?, ?it/s]/home/data/jiangyun/cgi_data_pipeline5/analyze/extract_representations.py:69: UserWarning: index_reduce() is in beta and the API may change at any time. (Triggered internally at ../aten/src/ATen/native/cuda/Indexing.cu:1190.)
+  max_s.index_reduce_(0, batch_idx, scores, 'amax', include_self=True)
+Extracting:   1%|          | 1/176 [00:01<04:34,  1.57s/it]Extracting:   3%|▎         | 5/176 [00:01<00:44,  3.84it/s]Extracting:   5%|▌         | 9/176 [00:01<00:22,  7.49it/s]Extracting:   7%|▋         | 13/176 [00:01<00:14, 11.48it/s]Extracting:  10%|▉         | 17/176 [00:02<00:12, 12.94it/s]Extracting:  12%|█▏        | 21/176 [00:02<00:11, 13.56it/s]Extracting:  14%|█▍        | 25/176 [00:02<00:11, 13.50it/s]Extracting:  17%|█▋        | 30/176 [00:02<00:08, 18.01it/s]Extracting:  19%|█▉        | 34/176 [00:02<00:06, 21.44it/s]Extracting:  22%|██▏       | 38/176 [00:03<00:05, 24.89it/s]Extracting:  24%|██▍       | 43/176 [00:03<00:04, 28.62it/s]Extracting:  27%|██▋       | 47/176 [00:03<00:04, 31.00it/s]Extracting:  30%|██▉       | 52/176 [00:03<00:03, 33.77it/s]Extracting:  32%|███▏      | 56/176 [00:03<00:03, 35.27it/s]Extracting:  34%|███▍      | 60/176 [00:03<00:03, 35.80it/s]Extracting:  36%|███▋      | 64/176 [00:03<00:03, 34.58it/s]Extracting:  39%|███▊      | 68/176 [00:03<00:03, 34.76it/s]Extracting:  41%|████      | 72/176 [00:03<00:02, 34.93it/s]Extracting:  43%|████▎     | 76/176 [00:04<00:02, 35.86it/s]Extracting:  45%|████▌     | 80/176 [00:04<00:02, 35.88it/s]Extracting:  48%|████▊     | 84/176 [00:04<00:02, 36.79it/s]Extracting:  50%|█████     | 88/176 [00:04<00:02, 37.43it/s]Extracting:  52%|█████▏    | 92/176 [00:04<00:02, 37.92it/s]Extracting:  55%|█████▍    | 96/176 [00:04<00:02, 37.45it/s]Extracting:  57%|█████▋    | 100/176 [00:04<00:02, 35.51it/s]Extracting:  59%|█████▉    | 104/176 [00:04<00:02, 34.74it/s]Extracting:  61%|██████▏   | 108/176 [00:04<00:02, 33.57it/s]Extracting:  64%|██████▎   | 112/176 [00:05<00:01, 32.02it/s]Extracting:  66%|██████▌   | 116/176 [00:05<00:01, 32.00it/s]Extracting:  68%|██████▊   | 120/176 [00:05<00:01, 32.80it/s]Extracting:  70%|███████   | 124/176 [00:05<00:01, 33.22it/s]Extracting:  73%|███████▎  | 128/176 [00:05<00:01, 33.96it/s]Extracting:  75%|███████▌  | 132/176 [00:05<00:01, 34.37it/s]Extracting:  77%|███████▋  | 136/176 [00:05<00:01, 33.93it/s]Extracting:  80%|███████▉  | 140/176 [00:05<00:01, 33.62it/s]Extracting:  82%|████████▏ | 144/176 [00:06<00:00, 33.62it/s]Extracting:  84%|████████▍ | 148/176 [00:06<00:00, 33.62it/s]Extracting:  86%|████████▋ | 152/176 [00:06<00:00, 33.91it/s]Extracting:  89%|████████▊ | 156/176 [00:06<00:00, 34.21it/s]Extracting:  91%|█████████ | 160/176 [00:06<00:00, 34.29it/s]Extracting:  93%|█████████▎| 164/176 [00:06<00:00, 34.30it/s]Extracting:  95%|█████████▌| 168/176 [00:06<00:00, 34.79it/s]Extracting:  98%|█████████▊| 172/176 [00:06<00:00, 36.11it/s]Extracting: 100%|██████████| 176/176 [00:07<00:00, 25.12it/s]
+
+  AUC: 0.8683 (验证集确认一致性)
+
+[4/4] 保存到: analyze/cache/A549
+
+✅ 完成
+  n_val=44858, pos=22051, neg=22807
+  AUC=0.8683
+  spectrum.shape=(44858, 8)
+  输出目录: analyze/cache/A549
+  ✅ 提取完成
+
+[Step 2/3] 交互谱可视化...
+  → analyze/figures/A549/spectrum_analysis_A549.{png,pdf}
+
+📊 加载缓存: analyze/cache/A549
+  细胞系: A549, AUC=0.8683
+  N=44858, pos=22051, neg=22807
+  spectrum shape: (44858, 8)
+
+✅ 保存: analyze/figures/A549/spectrum_analysis_A549.png
+  单图保存到: analyze/figures/A549/single_panels/
+
+📈 统计摘要 (A549)
+  Mode      Mean(pos)  Mean(neg)        Δ      p-val
+  --------------------------------------------------
+  M0           0.3091     0.3641  -0.0550        ***
+  M1           0.2218     0.2629  -0.0411        ***
+  M2           0.2540     0.2016   0.0524        ***
+  M3           0.2424     0.1858   0.0566        ***
+  M4           0.0187     0.0183   0.0004         ns
+  M5           0.2714     0.2786  -0.0072        ***
+  M6           0.0141     0.0147  -0.0006        ***
+  M7           0.0340     0.0332   0.0008        ***
+  ✅ 谱分析完成
+
+[Step 3/3] 药效团热图...
+  → analyze/figures/A549/pharmacophore/
+
+🔬 加载缓存: analyze/cache/A549
+  细胞系: A549, N=44858, r=8
+
+[1/2] 生成各模式 top 分子热图...
+  Mode 0 热图: analyze/figures/A549/pharmacophore/top_mols_mode0.png
+  Mode 1 热图: analyze/figures/A549/pharmacophore/top_mols_mode1.png
+  Mode 2 热图: analyze/figures/A549/pharmacophore/top_mols_mode2.png
+  Mode 3 热图: analyze/figures/A549/pharmacophore/top_mols_mode3.png
+  Mode 4 热图: analyze/figures/A549/pharmacophore/top_mols_mode4.png
+  Mode 5 热图: analyze/figures/A549/pharmacophore/top_mols_mode5.png
+  Mode 6 热图: analyze/figures/A549/pharmacophore/top_mols_mode6.png
+  Mode 7 热图: analyze/figures/A549/pharmacophore/top_mols_mode7.png
+
+[2/2] 生成原子注意力统计...
+  原子注意力分布: analyze/figures/A549/pharmacophore/atom_attn_violin.png
+
+[3/3] 生成汇总网格图...
+
+✅ 汇总图: analyze/figures/A549/pharmacophore/summary_grid_A549.png
+  ✅ 药效团热图完成
+
+================================================
+  全部分析完成！
+  查看图像: ls analyze/figures/A549/
+================================================

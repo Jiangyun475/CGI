@@ -1,0 +1,85 @@
+================================================
+  DrugOperatorNet 可视化分析流水线
+  细胞系: VCAP | Fold: 0 | Device: cuda:3
+  模型: results_operator_moe/VCAP/no_moe_r8_k4_Fold0_v1.pt
+  缓存: analyze/cache/VCAP
+  图像: analyze/figures/VCAP
+================================================
+
+[Step 1/3] 提取模型中间表示...
+  (spectrum, atom_attn, gene_attn → analyze/cache/VCAP/)
+
+[1/4] 加载验证集: /home/data/jiangyun/cgi_data_pipeline/outputs/datasets_classification_test_recommended/VCAP fold=0
+  验证集大小: 45459
+
+[2/4] 加载模型: results_operator_moe/VCAP/no_moe_r8_k4_Fold0_v1.pt
+  参数量: 918,210
+
+[3/4] 提取表示...
+Extracting:   0%|          | 0/178 [00:00<?, ?it/s]/home/data/jiangyun/cgi_data_pipeline5/analyze/extract_representations.py:69: UserWarning: index_reduce() is in beta and the API may change at any time. (Triggered internally at ../aten/src/ATen/native/cuda/Indexing.cu:1190.)
+  max_s.index_reduce_(0, batch_idx, scores, 'amax', include_self=True)
+Extracting:   1%|          | 1/178 [00:02<06:43,  2.28s/it]Extracting:   3%|▎         | 5/178 [00:02<01:03,  2.74it/s]Extracting:   5%|▌         | 9/178 [00:02<00:30,  5.53it/s]Extracting:   7%|▋         | 13/178 [00:02<00:19,  8.64it/s]Extracting:  10%|▉         | 17/178 [00:02<00:13, 12.08it/s]Extracting:  12%|█▏        | 21/178 [00:02<00:10, 15.70it/s]Extracting:  14%|█▍        | 25/178 [00:03<00:07, 19.20it/s]Extracting:  16%|█▋        | 29/178 [00:03<00:06, 22.21it/s]Extracting:  19%|█▊        | 33/178 [00:03<00:05, 24.82it/s]Extracting:  21%|██        | 37/178 [00:03<00:05, 27.13it/s]Extracting:  23%|██▎       | 41/178 [00:03<00:04, 28.80it/s]Extracting:  25%|██▌       | 45/178 [00:03<00:04, 30.25it/s]Extracting:  28%|██▊       | 49/178 [00:03<00:04, 25.86it/s]Extracting:  29%|██▉       | 52/178 [00:03<00:05, 24.69it/s]Extracting:  31%|███       | 55/178 [00:04<00:04, 24.76it/s]Extracting:  33%|███▎      | 58/178 [00:04<00:05, 23.20it/s]Extracting:  34%|███▍      | 61/178 [00:04<00:04, 24.11it/s]Extracting:  36%|███▌      | 64/178 [00:04<00:05, 22.55it/s]Extracting:  38%|███▊      | 67/178 [00:04<00:04, 23.93it/s]Extracting:  39%|███▉      | 70/178 [00:04<00:04, 22.95it/s]Extracting:  41%|████      | 73/178 [00:04<00:04, 23.56it/s]Extracting:  43%|████▎     | 76/178 [00:04<00:04, 23.47it/s]Extracting:  44%|████▍     | 79/178 [00:05<00:04, 22.56it/s]Extracting:  46%|████▌     | 82/178 [00:05<00:04, 23.49it/s]Extracting:  48%|████▊     | 85/178 [00:05<00:03, 24.82it/s]Extracting:  49%|████▉     | 88/178 [00:05<00:04, 20.22it/s]Extracting:  51%|█████     | 91/178 [00:05<00:04, 21.32it/s]Extracting:  53%|█████▎    | 94/178 [00:05<00:03, 22.58it/s]Extracting:  54%|█████▍    | 97/178 [00:05<00:03, 24.32it/s]Extracting:  56%|█████▌    | 100/178 [00:06<00:03, 25.33it/s]Extracting:  58%|█████▊    | 103/178 [00:06<00:02, 26.32it/s]Extracting:  60%|██████    | 107/178 [00:06<00:02, 27.50it/s]Extracting:  62%|██████▏   | 111/178 [00:06<00:02, 28.62it/s]Extracting:  65%|██████▍   | 115/178 [00:06<00:02, 29.18it/s]Extracting:  67%|██████▋   | 119/178 [00:06<00:01, 29.79it/s]Extracting:  69%|██████▉   | 123/178 [00:06<00:01, 29.97it/s]Extracting:  71%|███████▏  | 127/178 [00:06<00:01, 29.80it/s]Extracting:  74%|███████▎  | 131/178 [00:07<00:01, 30.05it/s]Extracting:  76%|███████▌  | 135/178 [00:07<00:01, 30.33it/s]Extracting:  78%|███████▊  | 139/178 [00:07<00:01, 29.63it/s]Extracting:  80%|████████  | 143/178 [00:07<00:01, 30.35it/s]Extracting:  83%|████████▎ | 147/178 [00:07<00:00, 31.33it/s]Extracting:  85%|████████▍ | 151/178 [00:07<00:00, 31.10it/s]Extracting:  87%|████████▋ | 155/178 [00:07<00:00, 32.10it/s]Extracting:  89%|████████▉ | 159/178 [00:07<00:00, 32.16it/s]Extracting:  92%|█████████▏| 163/178 [00:08<00:00, 31.41it/s]Extracting:  94%|█████████▍| 167/178 [00:08<00:00, 31.90it/s]Extracting:  96%|█████████▌| 171/178 [00:08<00:00, 31.82it/s]Extracting:  98%|█████████▊| 175/178 [00:08<00:00, 31.83it/s]Extracting: 100%|██████████| 178/178 [00:08<00:00, 20.56it/s]
+
+  AUC: 0.8062 (验证集确认一致性)
+
+[4/4] 保存到: analyze/cache/VCAP
+
+✅ 完成
+  n_val=45459, pos=22671, neg=22788
+  AUC=0.8062
+  spectrum.shape=(45459, 8)
+  输出目录: analyze/cache/VCAP
+  ✅ 提取完成
+
+[Step 2/3] 交互谱可视化...
+  → analyze/figures/VCAP/spectrum_analysis_VCAP.{png,pdf}
+
+📊 加载缓存: analyze/cache/VCAP
+  细胞系: VCAP, AUC=0.8062
+  N=45459, pos=22671, neg=22788
+  spectrum shape: (45459, 8)
+
+✅ 保存: analyze/figures/VCAP/spectrum_analysis_VCAP.png
+  单图保存到: analyze/figures/VCAP/single_panels/
+
+📈 统计摘要 (VCAP)
+  Mode      Mean(pos)  Mean(neg)        Δ      p-val
+  --------------------------------------------------
+  M0           0.0457     0.0384   0.0074          *
+  M1           0.0373     0.0348   0.0026         ns
+  M2           0.2740     0.2565   0.0175        ***
+  M3           0.0850     0.0790   0.0060         ns
+  M4           0.0110     0.0104   0.0006        ***
+  M5           0.3907     0.4049  -0.0142        ***
+  M6           0.0365     0.0352   0.0013         **
+  M7           0.3963     0.3748   0.0215        ***
+  ✅ 谱分析完成
+
+[Step 3/3] 药效团热图...
+  → analyze/figures/VCAP/pharmacophore/
+
+🔬 加载缓存: analyze/cache/VCAP
+  细胞系: VCAP, N=45459, r=8
+
+[1/2] 生成各模式 top 分子热图...
+  Mode 0 热图: analyze/figures/VCAP/pharmacophore/top_mols_mode0.png
+  Mode 1 热图: analyze/figures/VCAP/pharmacophore/top_mols_mode1.png
+  Mode 2 热图: analyze/figures/VCAP/pharmacophore/top_mols_mode2.png
+  Mode 3 热图: analyze/figures/VCAP/pharmacophore/top_mols_mode3.png
+  Mode 4 热图: analyze/figures/VCAP/pharmacophore/top_mols_mode4.png
+  Mode 5 热图: analyze/figures/VCAP/pharmacophore/top_mols_mode5.png
+  Mode 6 热图: analyze/figures/VCAP/pharmacophore/top_mols_mode6.png
+  Mode 7 热图: analyze/figures/VCAP/pharmacophore/top_mols_mode7.png
+
+[2/2] 生成原子注意力统计...
+  原子注意力分布: analyze/figures/VCAP/pharmacophore/atom_attn_violin.png
+
+[3/3] 生成汇总网格图...
+
+✅ 汇总图: analyze/figures/VCAP/pharmacophore/summary_grid_VCAP.png
+  ✅ 药效团热图完成
+
+================================================
+  全部分析完成！
+  查看图像: ls analyze/figures/VCAP/
+================================================

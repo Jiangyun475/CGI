@@ -1,0 +1,24 @@
+[Parallel(n_jobs=-1)]: Using backend ThreadingBackend with 48 concurrent workers.
+[Parallel(n_jobs=-1)]: Done 104 tasks      | elapsed:   28.7s
+[Parallel(n_jobs=-1)]: Done 200 out of 200 | elapsed:   44.7s finished
+[Parallel(n_jobs=48)]: Using backend ThreadingBackend with 48 concurrent workers.
+[Parallel(n_jobs=48)]: Done 104 tasks      | elapsed:    0.3s
+[Parallel(n_jobs=48)]: Done 200 out of 200 | elapsed:    0.5s finished
+
+============================================================
+🚀 ML 基准 | 细胞系: MCF7 | Fold: 3 | 模型: RF
+============================================================
+⚡ 加载全量 ML 特征缓存: ml_features_full.pkl
+
+Fold 3 数据切分完成:
+  X_train: (164743, 5120) | 正样本率: 0.499
+  X_val:   (41942, 5120)   | 正样本率: 0.498
+
+🌲 训练 Random Forest ...
+
+==================================================
+📊 [Random Forest | Fold 3]
+   AUROC : 0.8612
+   AUPRC : 0.8518
+   F1    : 0.7936
+==================================================

@@ -1,8 +1,7 @@
 #!/bin/bash
-# Morgan FP Baseline（ECFP4）三细胞系 Fold0
+# Morgan FP Baseline（ECFP4）四细胞系 Fold0
 # 验证 GIN 图学习的有效性：同架构仅替换化学编码器
-# A549 → cuda:0, VCAP → cuda:1, A375 → cuda:2
-# cuda:3 保留给模型调优
+# MCF7 → cuda:3, A549 → cuda:0, VCAP → cuda:1, A375 → cuda:2
 
 DATA_ROOT="/home/data/jiangyun/cgi_data_pipeline/outputs/datasets_classification_test_recommended"
 LOG_DIR="logs_morgan_3cell"
@@ -14,11 +13,21 @@ COMMON="--epochs 80 --batch_size 512 --lr 3e-4 --hidden_dim 128 \
         --patience 10 --seed 42 --use_amp --fold 0"
 
 echo "========================================"
-echo "  Morgan FP Baseline 三细胞系 Fold0"
+echo "  Morgan FP Baseline 四细胞系 Fold0"
+echo "  MCF7  → cuda:3"
 echo "  A549  → cuda:0"
 echo "  VCAP  → cuda:1"
 echo "  A375  → cuda:2"
 echo "========================================"
+
+nohup python train_morgan_baseline.py \
+    --data_dir "$DATA_ROOT/MCF7" \
+    --device cuda:3 \
+    $COMMON --run_tag v1 \
+    > "$LOG_DIR/MCF7_fold0.log" 2>&1 &
+echo "[MCF7]  PID=$! → $LOG_DIR/MCF7_fold0.log"
+
+sleep 5
 
 nohup python train_morgan_baseline.py \
     --data_dir "$DATA_ROOT/A549" \
@@ -47,6 +56,7 @@ echo "[A375]  PID=$! → $LOG_DIR/A375_fold0.log"
 
 echo ""
 echo "查看日志："
+echo "  tail -f $LOG_DIR/MCF7_fold0.log"
 echo "  tail -f $LOG_DIR/A549_fold0.log"
 echo "  tail -f $LOG_DIR/VCAP_fold0.log"
 echo "  tail -f $LOG_DIR/A375_fold0.log"

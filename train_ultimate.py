@@ -25,6 +25,7 @@ from torch.cuda.amp import autocast, GradScaler
 from torch_geometric.utils import softmax
 from sklearn.metrics import roc_auc_score, average_precision_score, f1_score
 
+from torch_geometric.utils import to_dense_batch
 try:
     from entmax import entmax15
     HAS_ENTMAX = True
@@ -163,7 +164,18 @@ class ChemEncoder_Ablation(nn.Module):
         self.gin_layers = nn.ModuleList([GINLayer(hidden_dim) for _ in range(3)])
         self.norms = nn.ModuleList([nn.LayerNorm(hidden_dim) for _ in range(3)])
         self.dropout = dropout
-        self.attn_proj = nn.Sequential(nn.Linear(hidden_dim, hidden_dim), nn.ReLU())
+        # self.attn_proj = nn.Sequential(nn.Linear(hidden_dim, hidden_dim), nn.ReLU())
+        self.context_mlp = nn.Sequential(
+            nn.Linear(hidden_dim * 2, hidden_dim), # 接收 [h_g, h_mol]
+            nn.LayerNorm(hidden_dim),
+            nn.ReLU(),
+            nn.Linear(hidden_dim, hidden_dim)
+        )
+        self.jk_proj = nn.Sequential(
+            nn.Linear(hidden_dim * 4, hidden_dim),
+            nn.BatchNorm1d(hidden_dim),
+            nn.ReLU()
+        )
         
         # 根据消融策略动态改变输出层维度
         out_dim_multiplier = 3 if pool_type == 'hybrid' else (2 if pool_type == 'sum_mean' else 1)
@@ -175,16 +187,31 @@ class ChemEncoder_Ablation(nn.Module):
 
     def forward(self, x, edge_index, edge_attr,num_nodes_list, h_g):
         device = x.device
-        x = self.atom_embed(x)
+        # x = self.atom_embed(x)
+        # for gin, norm in zip(self.gin_layers, self.norms):
+        #     x = F.dropout(F.relu(norm(x + gin(x, edge_index, edge_attr))), p=self.dropout, training=self.training)
+        # num_nodes_tensor = torch.tensor(num_nodes_list, device=device)
+        # batch_idx = torch.repeat_interleave(torch.arange(len(num_nodes_list), device=device), num_nodes_tensor)
+        x_0 = self.atom_embed(x)
+        xs = [x_0]  # 收集第 0 层特征
+        curr_x = x_0
         for gin, norm in zip(self.gin_layers, self.norms):
-            x = F.dropout(F.relu(norm(x + gin(x, edge_index, edge_attr))), p=self.dropout, training=self.training)
-            
+            curr_x = F.dropout(F.relu(norm(curr_x + gin(curr_x, edge_index, edge_attr))), p=self.dropout, training=self.training)
+            xs.append(curr_x) # 收集 1, 2, 3 层特征
+        # 👇 【新增】JK 拼接与降维
+        x_jk = torch.cat(xs, dim=-1)      # [N_atoms, hidden_dim * 4]
+        x = self.jk_proj(x_jk)            # [N_atoms, hidden_dim] 回到统一维度
         num_nodes_tensor = torch.tensor(num_nodes_list, device=device)
         batch_idx = torch.repeat_interleave(torch.arange(len(num_nodes_list), device=device), num_nodes_tensor)
-        
+
+
+
         # 1. 全局特征
-        sum_pool = torch.zeros(len(num_nodes_list), x.size(1), device=device).index_add_(0, batch_idx, x)
+        # sum_pool = torch.zeros(len(num_nodes_list), x.size(1), device=device).index_add_(0, batch_idx, x)
+        sum_pool = torch.zeros(len(num_nodes_list), x.size(1), dtype=x.dtype, device=device).index_add_(0, batch_idx, x)
         mean_pool = sum_pool / num_nodes_tensor.unsqueeze(1).clamp(min=1.0)
+
+        context_q = self.context_mlp(torch.cat([h_g, mean_pool], dim=-1))
         
         # 2. 靶向注意力 (获取原子级权重 alpha)
         # q = self.attn_proj(h_g) 
@@ -193,16 +220,30 @@ class ChemEncoder_Ablation(nn.Module):
         
         # 修改为 (加入 tau = 0.1):
         tau = 0.1  # 你可以后续测试 0.05, 0.1, 0.5
-        q = self.attn_proj(h_g) 
-        scores = (x * q[batch_idx]).sum(dim=-1) / math.sqrt(x.size(-1)) 
-        # 核心修改：缩放 scores
-        alpha = softmax(scores / tau, batch_idx)
+        # q = self.attn_proj(h_g) 
+
+        scores = (x * context_q[batch_idx]).sum(dim=-1) / math.sqrt(x.size(-1))
+        # alpha = softmax(scores / tau, batch_idx)
+
+        #替换 Softmax 为 Entmax 
+        dense_scores, mask = to_dense_batch(scores, batch_idx)
+        dense_scores = dense_scores.masked_fill(~mask, -1e9)
+        # 3. 计算 entmax15 (产生稀疏概率)
+        dense_alpha = entmax15(dense_scores, dim=-1)
+        # 4. 把计算好的概率拿回来，重组回一维的 flat 格式 [N_atoms]
+        alpha = dense_alpha[mask]
+
+
+        # scores = (x * q[batch_idx]).sum(dim=-1) / math.sqrt(x.size(-1)) 
+        # # 核心修改：缩放 scores
+        # alpha = softmax(scores / tau, batch_idx)
 
 
 
 
         x_weighted = x * alpha.unsqueeze(-1) 
-        target_pool = torch.zeros(len(num_nodes_list), x.size(1), device=device).index_add_(0, batch_idx, x_weighted)
+        # target_pool = torch.zeros(len(num_nodes_list), x.size(1), device=device).index_add_(0, batch_idx, x_weighted)
+        target_pool = torch.zeros(len(num_nodes_list), x.size(1), dtype=x_weighted.dtype, device=device).index_add_(0, batch_idx, x_weighted)
         
         # 消融选择
         if self.pool_type == 'hybrid':

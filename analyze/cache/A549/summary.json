@@ -1,0 +1,14 @@
+{
+  "cell_line": "A549",
+  "fold": 0,
+  "model_path": "results_operator_moe/A549/no_moe_r8_k4_Fold0_v1.pt",
+  "n_val": 44858,
+  "n_pos": 22051,
+  "n_neg": 22807,
+  "auc": 0.8683235348441294,
+  "operator_rank": 8,
+  "spectrum_shape": [
+    44858,
+    8
+  ]
+}

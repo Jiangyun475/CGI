@@ -1,0 +1,36 @@
+[TRAIN] ⚡ 复用 K-mer 缓存: kmer_cache_fold1_train.pt
+[VAL] ⚡ 复用 K-mer 缓存: kmer_cache_fold1_val.pt
+
+============================================================
+🚀 深度学习基线（晚期融合）
+   细胞系: HUVEC | Fold: 1 | Device: cuda:2
+   Train: 13,749  Val: 3,815
+   消融对比: 无靶向池化 | 无正交剥离 | 无对比学习
+============================================================
+
+Ep 01 | Loss: 0.5334 | VAL_AUC: 0.9566 | PRC: 0.9516 | F1: 0.8824
+Ep 02 | Loss: 0.2510 | VAL_AUC: 0.9644 | PRC: 0.9629 | F1: 0.8862
+Ep 03 | Loss: 0.2298 | VAL_AUC: 0.9645 | PRC: 0.9640 | F1: 0.8939
+Ep 04 | Loss: 0.2150 | VAL_AUC: 0.9657 | PRC: 0.9641 | F1: 0.8995
+Ep 05 | Loss: 0.2151 | VAL_AUC: 0.9662 | PRC: 0.9644 | F1: 0.8984
+Ep 06 | Loss: 0.2049 | VAL_AUC: 0.9659 | PRC: 0.9645 | F1: 0.8967
+Ep 07 | Loss: 0.2036 | VAL_AUC: 0.9651 | PRC: 0.9629 | F1: 0.8964
+Ep 08 | Loss: 0.1976 | VAL_AUC: 0.9643 | PRC: 0.9617 | F1: 0.8880
+Ep 09 | Loss: 0.1979 | VAL_AUC: 0.9665 | PRC: 0.9653 | F1: 0.9001
+Ep 10 | Loss: 0.1965 | VAL_AUC: 0.9651 | PRC: 0.9637 | F1: 0.8960
+Ep 11 | Loss: 0.1886 | VAL_AUC: 0.9662 | PRC: 0.9647 | F1: 0.8905
+Ep 12 | Loss: 0.1865 | VAL_AUC: 0.9660 | PRC: 0.9646 | F1: 0.8964
+Ep 13 | Loss: 0.1867 | VAL_AUC: 0.9669 | PRC: 0.9654 | F1: 0.9003
+Ep 14 | Loss: 0.1814 | VAL_AUC: 0.9662 | PRC: 0.9650 | F1: 0.8998
+Ep 15 | Loss: 0.1832 | VAL_AUC: 0.9661 | PRC: 0.9649 | F1: 0.8985
+Ep 16 | Loss: 0.1788 | VAL_AUC: 0.9656 | PRC: 0.9638 | F1: 0.8924
+Ep 17 | Loss: 0.1757 | VAL_AUC: 0.9652 | PRC: 0.9632 | F1: 0.8992
+Ep 18 | Loss: 0.1678 | VAL_AUC: 0.9655 | PRC: 0.9627 | F1: 0.8966
+Ep 19 | Loss: 0.1650 | VAL_AUC: 0.9660 | PRC: 0.9636 | F1: 0.9006
+Ep 20 | Loss: 0.1639 | VAL_AUC: 0.9653 | PRC: 0.9630 | F1: 0.9005
+Ep 21 | Loss: 0.1614 | VAL_AUC: 0.9653 | PRC: 0.9628 | F1: 0.9017
+Ep 22 | Loss: 0.1576 | VAL_AUC: 0.9650 | PRC: 0.9622 | F1: 0.8992
+Ep 23 | Loss: 0.1556 | VAL_AUC: 0.9650 | PRC: 0.9624 | F1: 0.8989
+🛑 早停 (patience=10) | Best AUC: 0.9669
+
+✅ Fold 1 完成 | Best VAL_AUC: 0.9669

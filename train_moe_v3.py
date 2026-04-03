@@ -40,7 +40,7 @@ for i, combo in enumerate(itertools.product('ACGT', repeat=6), 1):
     _KMER_VOCAB[''.join(combo)] = i
 _KMER_VOCAB['NNNNNN'] = 0
 
-GENE_MAX_LEN  = 3000
+GENE_MAX_LEN  = 2000
 GENE_INNER_DIM = 128
 GENE_STRIDES   = [3, 2, 2]   # 3000→1000→500→250，第一层 stride=3 对齐长度
 

@@ -1,0 +1,85 @@
+================================================
+  DrugOperatorNet 可视化分析流水线
+  细胞系: A375 | Fold: 0 | Device: cuda:1
+  模型: results_operator_moe/A375/no_moe_r8_k4_Fold0_v1.pt
+  缓存: analyze/cache/A375
+  图像: analyze/figures/A375
+================================================
+
+[Step 1/3] 提取模型中间表示...
+  (spectrum, atom_attn, gene_attn → analyze/cache/A375/)
+
+[1/4] 加载验证集: /home/data/jiangyun/cgi_data_pipeline/outputs/datasets_classification_test_recommended/A375 fold=0
+  验证集大小: 40939
+
+[2/4] 加载模型: results_operator_moe/A375/no_moe_r8_k4_Fold0_v1.pt
+  参数量: 918,210
+
+[3/4] 提取表示...
+Extracting:   0%|          | 0/160 [00:00<?, ?it/s]/home/data/jiangyun/cgi_data_pipeline5/analyze/extract_representations.py:69: UserWarning: index_reduce() is in beta and the API may change at any time. (Triggered internally at ../aten/src/ATen/native/cuda/Indexing.cu:1190.)
+  max_s.index_reduce_(0, batch_idx, scores, 'amax', include_self=True)
+Extracting:   1%|          | 1/160 [00:02<05:46,  2.18s/it]Extracting:   3%|▎         | 5/160 [00:02<00:53,  2.88it/s]Extracting:   6%|▌         | 9/160 [00:02<00:25,  5.85it/s]Extracting:   8%|▊         | 13/160 [00:02<00:15,  9.27it/s]Extracting:  11%|█         | 17/160 [00:02<00:10, 13.15it/s]Extracting:  13%|█▎        | 21/160 [00:02<00:08, 17.24it/s]Extracting:  16%|█▌        | 25/160 [00:02<00:06, 21.25it/s]Extracting:  18%|█▊        | 29/160 [00:02<00:05, 25.06it/s]Extracting:  21%|██        | 33/160 [00:03<00:04, 28.13it/s]Extracting:  23%|██▎       | 37/160 [00:03<00:03, 30.77it/s]Extracting:  26%|██▌       | 41/160 [00:03<00:03, 33.05it/s]Extracting:  28%|██▊       | 45/160 [00:03<00:03, 34.89it/s]Extracting:  31%|███       | 49/160 [00:03<00:03, 35.74it/s]Extracting:  33%|███▎      | 53/160 [00:03<00:03, 34.93it/s]Extracting:  36%|███▌      | 57/160 [00:03<00:02, 34.79it/s]Extracting:  38%|███▊      | 61/160 [00:03<00:02, 35.99it/s]Extracting:  41%|████      | 65/160 [00:03<00:02, 36.18it/s]Extracting:  43%|████▎     | 69/160 [00:03<00:02, 35.75it/s]Extracting:  46%|████▌     | 73/160 [00:04<00:02, 35.46it/s]Extracting:  48%|████▊     | 77/160 [00:04<00:02, 35.31it/s]Extracting:  51%|█████     | 81/160 [00:04<00:02, 35.10it/s]Extracting:  53%|█████▎    | 85/160 [00:04<00:02, 35.13it/s]Extracting:  56%|█████▌    | 89/160 [00:04<00:02, 35.09it/s]Extracting:  58%|█████▊    | 93/160 [00:04<00:01, 35.02it/s]Extracting:  61%|██████    | 97/160 [00:04<00:01, 34.49it/s]Extracting:  63%|██████▎   | 101/160 [00:04<00:01, 34.07it/s]Extracting:  66%|██████▌   | 105/160 [00:05<00:01, 35.09it/s]Extracting:  68%|██████▊   | 109/160 [00:05<00:01, 36.02it/s]Extracting:  71%|███████   | 113/160 [00:05<00:01, 35.80it/s]Extracting:  73%|███████▎  | 117/160 [00:05<00:01, 35.22it/s]Extracting:  76%|███████▌  | 121/160 [00:05<00:01, 34.20it/s]Extracting:  78%|███████▊  | 125/160 [00:05<00:00, 35.30it/s]Extracting:  81%|████████  | 129/160 [00:05<00:00, 34.84it/s]Extracting:  83%|████████▎ | 133/160 [00:05<00:00, 34.44it/s]Extracting:  86%|████████▌ | 137/160 [00:05<00:00, 33.92it/s]Extracting:  88%|████████▊ | 141/160 [00:06<00:00, 34.93it/s]Extracting:  91%|█████████ | 145/160 [00:06<00:00, 35.40it/s]Extracting:  93%|█████████▎| 149/160 [00:06<00:00, 34.98it/s]Extracting:  96%|█████████▌| 153/160 [00:06<00:00, 34.82it/s]Extracting:  98%|█████████▊| 157/160 [00:06<00:00, 34.42it/s]Extracting: 100%|██████████| 160/160 [00:06<00:00, 24.03it/s]
+
+  AUC: 0.9016 (验证集确认一致性)
+
+[4/4] 保存到: analyze/cache/A375
+
+✅ 完成
+  n_val=40939, pos=20498, neg=20441
+  AUC=0.9016
+  spectrum.shape=(40939, 8)
+  输出目录: analyze/cache/A375
+  ✅ 提取完成
+
+[Step 2/3] 交互谱可视化...
+  → analyze/figures/A375/spectrum_analysis_A375.{png,pdf}
+
+📊 加载缓存: analyze/cache/A375
+  细胞系: A375, AUC=0.9016
+  N=40939, pos=20498, neg=20441
+  spectrum shape: (40939, 8)
+
+✅ 保存: analyze/figures/A375/spectrum_analysis_A375.png
+  单图保存到: analyze/figures/A375/single_panels/
+
+📈 统计摘要 (A375)
+  Mode      Mean(pos)  Mean(neg)        Δ      p-val
+  --------------------------------------------------
+  M0           0.0258     0.0206   0.0052        ***
+  M1           0.0469     0.0418   0.0051        ***
+  M2           0.4389     0.4602  -0.0213        ***
+  M3           0.7765     0.8098  -0.0333        ***
+  M4           0.0094     0.0078   0.0016        ***
+  M5           0.1047     0.1054  -0.0007         ns
+  M6           0.0065     0.0054   0.0010        ***
+  M7           0.0141     0.0114   0.0027        ***
+  ✅ 谱分析完成
+
+[Step 3/3] 药效团热图...
+  → analyze/figures/A375/pharmacophore/
+
+🔬 加载缓存: analyze/cache/A375
+  细胞系: A375, N=40939, r=8
+
+[1/2] 生成各模式 top 分子热图...
+  Mode 0 热图: analyze/figures/A375/pharmacophore/top_mols_mode0.png
+  Mode 1 热图: analyze/figures/A375/pharmacophore/top_mols_mode1.png
+  Mode 2 热图: analyze/figures/A375/pharmacophore/top_mols_mode2.png
+  Mode 3 热图: analyze/figures/A375/pharmacophore/top_mols_mode3.png
+  Mode 4 热图: analyze/figures/A375/pharmacophore/top_mols_mode4.png
+  Mode 5 热图: analyze/figures/A375/pharmacophore/top_mols_mode5.png
+  Mode 6 热图: analyze/figures/A375/pharmacophore/top_mols_mode6.png
+  Mode 7 热图: analyze/figures/A375/pharmacophore/top_mols_mode7.png
+
+[2/2] 生成原子注意力统计...
+  原子注意力分布: analyze/figures/A375/pharmacophore/atom_attn_violin.png
+
+[3/3] 生成汇总网格图...
+
+✅ 汇总图: analyze/figures/A375/pharmacophore/summary_grid_A375.png
+  ✅ 药效团热图完成
+
+================================================
+  全部分析完成！
+  查看图像: ls analyze/figures/A375/
+================================================

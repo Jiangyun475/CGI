@@ -34,10 +34,13 @@ from train_ultimate import PaperModel, encode_kmer_sequence
 # 从模型文件名自动解析配置
 # ─────────────────────────────────────────────────────────────────
 def infer_config(model_path: str):
-    name = Path(model_path).stem  # e.g. model_orthoTrue_clTrue_hybrid
-    parts = name.split("_")
-    # pool_type 是最后一段
-    pool_type = parts[-1]         # hybrid / sum_mean / target
+    name = Path(model_path).stem
+    # pool_type 从已知合法值中搜索，而非取最后一段（文件名可能带 tag）
+    pool_type = 'hybrid'  # 默认
+    for pt in ['sum_mean', 'target', 'hybrid']:
+        if f'_{pt}' in name or f'_{pt}_' in name:
+            pool_type = pt
+            break
     use_ortho = "orthoTrue" in name
     return pool_type, use_ortho
 
@@ -233,8 +236,8 @@ if __name__ == "__main__":
 
     MODEL_DIR = ROOT / "results_paper" / "MCF7"
     model_configs = [
-        ("Full (hybrid)",  str(MODEL_DIR / "model_orthoTrue_clTrue_hybrid.pt")),
-        ("TargetOnly",     str(MODEL_DIR / "model_orthoTrue_clTrue_target.pt")),
+        ("JK+Entmax",        str(MODEL_DIR / "model_orthoTrue_clTrue_hybrid_Fold0_JK_Entmax.pt")),
+        ("tau0.1+JK+Context",str(MODEL_DIR / "model_orthoTrue_clTrue_hybrid_Fold0_tau_0.1_JK_Context.pt")),
     ]
 
     smiles_to_graph_dict = raw['smiles_to_graph']

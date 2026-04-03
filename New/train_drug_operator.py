@@ -61,6 +61,7 @@ from torch.utils.data import Dataset, DataLoader
 from torch.cuda.amp import autocast, GradScaler
 def scatter_softmax(scores, batch_idx):
     """图内原子级 softmax，纯 PyTorch 实现（无需 torch_geometric）。"""
+    scores = scores.float()
     max_scores = torch.zeros(batch_idx.max().item() + 1,
                              device=scores.device).index_reduce_(
                                  0, batch_idx, scores, 'amax', include_self=True)

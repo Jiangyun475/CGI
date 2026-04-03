@@ -1,0 +1,794 @@
+
+============================================================
+🚀 ML 基准 | 细胞系: HUVEC | Fold: 0 | 模型: RF
+============================================================
+首次运行，提取全量特征（后续直接加载缓存）...
+  总样本数: 17,564
+  提取 Morgan Fingerprints (1024-bit, ECFP4)...
+  独特 SMILES: 760（去重率 95.7%）
+  Morgan FP:   0%|          | 0/760 [00:00<?, ?it/s][23:27:49] DEPRECATION WARNING: please use MorganGenerator
+  Morgan FP:   0%|          | 1/760 [00:03<40:37,  3.21s/it][23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+  Morgan FP:  30%|███       | 231/760 [00:03<00:05, 98.23it/s][23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+  Morgan FP:  50%|█████     | 382/760 [00:03<00:02, 179.18it/s][23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+  Morgan FP:  72%|███████▏  | 546/760 [00:03<00:00, 289.69it/s][23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+  Morgan FP:  92%|█████████▏| 697/760 [00:03<00:00, 386.22it/s][23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+[23:27:49] DEPRECATION WARNING: please use MorganGenerator
+  Morgan FP: 100%|██████████| 760/760 [00:03<00:00, 204.20it/s]
+  化学特征矩阵: (17564, 1024)
+  提取 6-mer 频率向量 (4096-dim)...
+  6-mer Freq:   0%|          | 0/17564 [00:00<?, ?it/s]  6-mer Freq:   0%|          | 46/17564 [00:00<00:38, 455.26it/s]  6-mer Freq:   1%|          | 92/17564 [00:00<00:39, 444.36it/s]  6-mer Freq:   1%|          | 155/17564 [00:00<00:33, 518.10it/s]  6-mer Freq:   1%|          | 207/17564 [00:00<00:37, 466.05it/s]  6-mer Freq:   1%|▏         | 255/17564 [00:00<00:39, 434.25it/s]  6-mer Freq:   2%|▏         | 300/17564 [00:00<00:41, 412.55it/s]  6-mer Freq:   2%|▏         | 361/17564 [00:00<00:36, 466.81it/s]  6-mer Freq:   2%|▏         | 409/17564 [00:00<00:36, 463.68it/s]  6-mer Freq:   3%|▎         | 456/17564 [00:01<00:37, 451.00it/s]  6-mer Freq:   3%|▎         | 502/17564 [00:01<00:39, 434.11it/s]  6-mer Freq:   3%|▎         | 546/17564 [00:01<00:41, 407.52it/s]  6-mer Freq:   3%|▎         | 588/17564 [00:01<00:42, 402.91it/s]  6-mer Freq:   4%|▎         | 629/17564 [00:01<00:42, 401.66it/s]  6-mer Freq:   4%|▍         | 695/17564 [00:01<00:35, 474.08it/s]  6-mer Freq:   4%|▍         | 744/17564 [00:01<00:36, 455.20it/s]  6-mer Freq:   5%|▍         | 812/17564 [00:01<00:32, 516.70it/s]  6-mer Freq:   5%|▍         | 865/17564 [00:01<00:35, 475.86it/s]  6-mer Freq:   5%|▌         | 914/17564 [00:02<00:40, 412.09it/s]  6-mer Freq:   5%|▌         | 958/17564 [00:02<00:41, 397.02it/s]  6-mer Freq:   6%|▌         | 1000/17564 [00:02<00:43, 377.90it/s]  6-mer Freq:   6%|▌         | 1039/17564 [00:02<00:45, 366.90it/s]  6-mer Freq:   6%|▌         | 1091/17564 [00:02<00:40, 404.72it/s]  6-mer Freq:   6%|▋         | 1135/17564 [00:02<00:39, 411.62it/s]  6-mer Freq:   7%|▋         | 1199/17564 [00:02<00:34, 470.83it/s]  6-mer Freq:   7%|▋         | 1255/17564 [00:02<00:33, 494.11it/s]  6-mer Freq:   7%|▋         | 1306/17564 [00:02<00:35, 453.49it/s]  6-mer Freq:   8%|▊         | 1356/17564 [00:03<00:34, 465.75it/s]  6-mer Freq:   8%|▊         | 1425/17564 [00:03<00:30, 526.06it/s]  6-mer Freq:   9%|▊         | 1499/17564 [00:03<00:27, 586.22it/s]  6-mer Freq:   9%|▉         | 1559/17564 [00:03<00:28, 555.25it/s]  6-mer Freq:   9%|▉         | 1616/17564 [00:03<00:30, 524.65it/s]  6-mer Freq:  10%|▉         | 1695/17564 [00:03<00:26, 596.78it/s]  6-mer Freq:  10%|█         | 1757/17564 [00:03<00:27, 577.72it/s]  6-mer Freq:  10%|█         | 1816/17564 [00:03<00:29, 535.92it/s]  6-mer Freq:  11%|█         | 1871/17564 [00:04<00:36, 430.19it/s]  6-mer Freq:  11%|█         | 1918/17564 [00:04<00:37, 411.87it/s]  6-mer Freq:  11%|█         | 1966/17564 [00:04<00:36, 424.21it/s]  6-mer Freq:  12%|█▏        | 2027/17564 [00:04<00:33, 459.32it/s]  6-mer Freq:  12%|█▏        | 2075/17564 [00:04<00:34, 449.29it/s]  6-mer Freq:  12%|█▏        | 2122/17564 [00:04<00:34, 446.75it/s]  6-mer Freq:  12%|█▏        | 2171/17564 [00:04<00:33, 455.40it/s]  6-mer Freq:  13%|█▎        | 2218/17564 [00:04<00:35, 431.80it/s]  6-mer Freq:  13%|█▎        | 2281/17564 [00:04<00:31, 485.09it/s]  6-mer Freq:  13%|█▎        | 2331/17564 [00:05<00:32, 465.62it/s]  6-mer Freq:  14%|█▎        | 2379/17564 [00:05<00:32, 466.71it/s]  6-mer Freq:  14%|█▍        | 2427/17564 [00:05<00:34, 438.62it/s]  6-mer Freq:  14%|█▍        | 2495/17564 [00:05<00:29, 502.84it/s]  6-mer Freq:  15%|█▍        | 2560/17564 [00:05<00:27, 543.15it/s]  6-mer Freq:  15%|█▍        | 2616/17564 [00:05<00:27, 543.81it/s]  6-mer Freq:  15%|█▌        | 2672/17564 [00:05<00:32, 456.89it/s]  6-mer Freq:  16%|█▌        | 2757/17564 [00:05<00:26, 555.91it/s]  6-mer Freq:  16%|█▌        | 2817/17564 [00:05<00:26, 549.13it/s]  6-mer Freq:  16%|█▋        | 2875/17564 [00:06<00:29, 503.76it/s]  6-mer Freq:  17%|█▋        | 2928/17564 [00:06<00:30, 479.56it/s]  6-mer Freq:  17%|█▋        | 2989/17564 [00:06<00:28, 512.30it/s]  6-mer Freq:  17%|█▋        | 3059/17564 [00:06<00:26, 555.01it/s]  6-mer Freq:  18%|█▊        | 3122/17564 [00:06<00:25, 573.80it/s]  6-mer Freq:  18%|█▊        | 3211/17564 [00:06<00:21, 661.64it/s]  6-mer Freq:  19%|█▊        | 3279/17564 [00:06<00:25, 561.39it/s]  6-mer Freq:  19%|█▉        | 3339/17564 [00:07<00:30, 466.30it/s]  6-mer Freq:  19%|█▉        | 3391/17564 [00:07<00:33, 423.73it/s]  6-mer Freq:  20%|█▉        | 3437/17564 [00:07<00:35, 397.78it/s]  6-mer Freq:  20%|█▉        | 3480/17564 [00:07<00:37, 372.67it/s]  6-mer Freq:  20%|██        | 3519/17564 [00:07<00:37, 376.37it/s]  6-mer Freq:  20%|██        | 3582/17564 [00:07<00:31, 438.53it/s]  6-mer Freq:  21%|██        | 3660/17564 [00:07<00:26, 523.86it/s]  6-mer Freq:  21%|██        | 3715/17564 [00:07<00:28, 492.37it/s]  6-mer Freq:  21%|██▏       | 3767/17564 [00:07<00:28, 488.01it/s]  6-mer Freq:  22%|██▏       | 3818/17564 [00:08<00:30, 446.68it/s]  6-mer Freq:  22%|██▏       | 3871/17564 [00:08<00:29, 466.35it/s]  6-mer Freq:  22%|██▏       | 3919/17564 [00:08<00:32, 416.86it/s]  6-mer Freq:  23%|██▎       | 3963/17564 [00:08<00:39, 342.24it/s]  6-mer Freq:  23%|██▎       | 4001/17564 [00:08<00:41, 327.04it/s]  6-mer Freq:  23%|██▎       | 4036/17564 [00:08<00:43, 314.54it/s]  6-mer Freq:  23%|██▎       | 4069/17564 [00:08<00:42, 314.88it/s]  6-mer Freq:  23%|██▎       | 4102/17564 [00:09<00:43, 311.21it/s]  6-mer Freq:  24%|██▎       | 4134/17564 [00:09<00:46, 289.09it/s]  6-mer Freq:  24%|██▎       | 4164/17564 [00:09<00:48, 274.89it/s]  6-mer Freq:  24%|██▍       | 4192/17564 [00:09<00:48, 273.11it/s]  6-mer Freq:  24%|██▍       | 4220/17564 [00:09<00:52, 255.96it/s]  6-mer Freq:  24%|██▍       | 4255/17564 [00:09<00:47, 279.89it/s]  6-mer Freq:  24%|██▍       | 4290/17564 [00:09<00:44, 297.95it/s]  6-mer Freq:  25%|██▍       | 4323/17564 [00:09<00:43, 306.73it/s]  6-mer Freq:  25%|██▍       | 4355/17564 [00:09<00:42, 307.23it/s]  6-mer Freq:  25%|██▍       | 4387/17564 [00:10<00:42, 307.36it/s]  6-mer Freq:  25%|██▌       | 4418/17564 [00:10<00:46, 281.66it/s]  6-mer Freq:  25%|██▌       | 4447/17564 [00:10<00:46, 280.75it/s]  6-mer Freq:  26%|██▌       | 4484/17564 [00:10<00:42, 305.20it/s]  6-mer Freq:  26%|██▌       | 4534/17564 [00:10<00:36, 359.02it/s]  6-mer Freq:  26%|██▌       | 4571/17564 [00:10<00:36, 356.22it/s]  6-mer Freq:  26%|██▋       | 4627/17564 [00:10<00:31, 410.40it/s]  6-mer Freq:  27%|██▋       | 4669/17564 [00:10<00:32, 402.02it/s]  6-mer Freq:  27%|██▋       | 4710/17564 [00:10<00:32, 390.08it/s]  6-mer Freq:  27%|██▋       | 4750/17564 [00:11<00:34, 371.89it/s]  6-mer Freq:  27%|██▋       | 4788/17564 [00:11<00:34, 370.20it/s]  6-mer Freq:  27%|██▋       | 4827/17564 [00:11<00:33, 375.17it/s]  6-mer Freq:  28%|██▊       | 4865/17564 [00:11<00:34, 367.98it/s]  6-mer Freq:  28%|██▊       | 4913/17564 [00:11<00:31, 399.42it/s]  6-mer Freq:  28%|██▊       | 4954/17564 [00:11<00:31, 401.54it/s]  6-mer Freq:  28%|██▊       | 5004/17564 [00:11<00:29, 426.18it/s]  6-mer Freq:  29%|██▊       | 5047/17564 [00:11<00:30, 407.22it/s]  6-mer Freq:  29%|██▉       | 5099/17564 [00:11<00:28, 437.40it/s]  6-mer Freq:  29%|██▉       | 5153/17564 [00:11<00:26, 464.15it/s]  6-mer Freq:  30%|██▉       | 5200/17564 [00:12<00:27, 444.78it/s]  6-mer Freq:  30%|██▉       | 5245/17564 [00:12<00:27, 442.46it/s]  6-mer Freq:  30%|███       | 5307/17564 [00:12<00:24, 492.32it/s]  6-mer Freq:  31%|███       | 5360/17564 [00:12<00:24, 495.73it/s]  6-mer Freq:  31%|███       | 5410/17564 [00:12<00:27, 440.41it/s]  6-mer Freq:  31%|███       | 5456/17564 [00:12<00:28, 417.56it/s]  6-mer Freq:  31%|███▏      | 5526/17564 [00:12<00:24, 489.81it/s]  6-mer Freq:  32%|███▏      | 5577/17564 [00:12<00:24, 482.15it/s]  6-mer Freq:  32%|███▏      | 5627/17564 [00:12<00:25, 469.71it/s]  6-mer Freq:  32%|███▏      | 5675/17564 [00:13<00:26, 440.98it/s]  6-mer Freq:  33%|███▎      | 5733/17564 [00:13<00:24, 476.63it/s]  6-mer Freq:  33%|███▎      | 5788/17564 [00:13<00:23, 496.16it/s]  6-mer Freq:  33%|███▎      | 5841/17564 [00:13<00:23, 504.22it/s]  6-mer Freq:  34%|███▎      | 5893/17564 [00:13<00:24, 481.17it/s]  6-mer Freq:  34%|███▍      | 5942/17564 [00:13<00:25, 461.33it/s]  6-mer Freq:  34%|███▍      | 5989/17564 [00:13<00:27, 428.26it/s]  6-mer Freq:  34%|███▍      | 6033/17564 [00:13<00:31, 367.66it/s]  6-mer Freq:  35%|███▍      | 6072/17564 [00:14<00:33, 343.37it/s]  6-mer Freq:  35%|███▍      | 6110/17564 [00:14<00:32, 350.70it/s]  6-mer Freq:  35%|███▍      | 6147/17564 [00:14<00:32, 355.18it/s]  6-mer Freq:  35%|███▌      | 6184/17564 [00:14<00:31, 356.33it/s]  6-mer Freq:  35%|███▌      | 6221/17564 [00:14<00:32, 353.50it/s]  6-mer Freq:  36%|███▌      | 6261/17564 [00:14<00:31, 363.41it/s]  6-mer Freq:  36%|███▌      | 6298/17564 [00:14<00:32, 348.01it/s]  6-mer Freq:  36%|███▌      | 6336/17564 [00:14<00:31, 356.48it/s]  6-mer Freq:  36%|███▋      | 6397/17564 [00:14<00:26, 428.27it/s]  6-mer Freq:  37%|███▋      | 6441/17564 [00:15<00:26, 425.73it/s]  6-mer Freq:  37%|███▋      | 6484/17564 [00:15<00:26, 425.03it/s]  6-mer Freq:  37%|███▋      | 6551/17564 [00:15<00:22, 494.82it/s]  6-mer Freq:  38%|███▊      | 6609/17564 [00:15<00:21, 517.13it/s]  6-mer Freq:  38%|███▊      | 6661/17564 [00:15<00:21, 502.00it/s]  6-mer Freq:  38%|███▊      | 6712/17564 [00:15<00:23, 455.48it/s]  6-mer Freq:  39%|███▊      | 6770/17564 [00:15<00:22, 488.68it/s]  6-mer Freq:  39%|███▉      | 6835/17564 [00:15<00:20, 531.26it/s]  6-mer Freq:  39%|███▉      | 6890/17564 [00:15<00:21, 504.40it/s]  6-mer Freq:  40%|███▉      | 6942/17564 [00:16<00:23, 450.57it/s]  6-mer Freq:  40%|███▉      | 6989/17564 [00:16<00:24, 429.81it/s]  6-mer Freq:  40%|████      | 7058/17564 [00:16<00:21, 496.67it/s]  6-mer Freq:  41%|████      | 7126/17564 [00:16<00:19, 542.10it/s]  6-mer Freq:  41%|████      | 7182/17564 [00:16<00:22, 454.34it/s]  6-mer Freq:  41%|████      | 7231/17564 [00:16<00:25, 401.80it/s]  6-mer Freq:  41%|████▏     | 7280/17564 [00:16<00:24, 421.80it/s]  6-mer Freq:  42%|████▏     | 7351/17564 [00:16<00:20, 491.25it/s]  6-mer Freq:  42%|████▏     | 7404/17564 [00:17<00:20, 488.93it/s]  6-mer Freq:  42%|████▏     | 7456/17564 [00:17<00:23, 433.40it/s]  6-mer Freq:  43%|████▎     | 7502/17564 [00:17<00:23, 430.46it/s]  6-mer Freq:  43%|████▎     | 7570/17564 [00:17<00:20, 491.77it/s]  6-mer Freq:  43%|████▎     | 7622/17564 [00:17<00:20, 478.20it/s]  6-mer Freq:  44%|████▍     | 7688/17564 [00:17<00:18, 525.27it/s]  6-mer Freq:  44%|████▍     | 7743/17564 [00:17<00:18, 521.38it/s]  6-mer Freq:  44%|████▍     | 7814/17564 [00:17<00:17, 573.04it/s]  6-mer Freq:  45%|████▍     | 7873/17564 [00:17<00:17, 565.67it/s]  6-mer Freq:  45%|████▌     | 7934/17564 [00:18<00:16, 576.67it/s]  6-mer Freq:  46%|████▌     | 7993/17564 [00:18<00:17, 556.15it/s]  6-mer Freq:  46%|████▌     | 8053/17564 [00:18<00:16, 567.39it/s]  6-mer Freq:  46%|████▌     | 8111/17564 [00:18<00:17, 533.97it/s]  6-mer Freq:  47%|████▋     | 8171/17564 [00:18<00:17, 550.97it/s]  6-mer Freq:  47%|████▋     | 8244/17564 [00:18<00:15, 601.32it/s]  6-mer Freq:  47%|████▋     | 8323/17564 [00:18<00:14, 654.58it/s]  6-mer Freq:  48%|████▊     | 8390/17564 [00:18<00:16, 571.20it/s]  6-mer Freq:  48%|████▊     | 8450/17564 [00:18<00:17, 526.56it/s]  6-mer Freq:  48%|████▊     | 8507/17564 [00:19<00:16, 535.63it/s]  6-mer Freq:  49%|████▉     | 8563/17564 [00:19<00:18, 490.67it/s]  6-mer Freq:  49%|████▉     | 8614/17564 [00:19<00:18, 473.59it/s]  6-mer Freq:  49%|████▉     | 8663/17564 [00:19<00:19, 460.61it/s]  6-mer Freq:  50%|████▉     | 8710/17564 [00:19<00:21, 407.15it/s]  6-mer Freq:  50%|████▉     | 8780/17564 [00:19<00:18, 478.67it/s]  6-mer Freq:  50%|█████     | 8858/17564 [00:19<00:15, 556.17it/s]  6-mer Freq:  51%|█████     | 8917/17564 [00:19<00:15, 556.09it/s]  6-mer Freq:  51%|█████     | 8975/17564 [00:20<00:15, 537.39it/s]  6-mer Freq:  51%|█████▏    | 9031/17564 [00:20<00:17, 495.72it/s]  6-mer Freq:  52%|█████▏    | 9111/17564 [00:20<00:14, 573.82it/s]  6-mer Freq:  52%|█████▏    | 9176/17564 [00:20<00:14, 594.05it/s]  6-mer Freq:  53%|█████▎    | 9241/17564 [00:20<00:13, 608.84it/s]  6-mer Freq:  53%|█████▎    | 9305/17564 [00:20<00:13, 617.18it/s]  6-mer Freq:  53%|█████▎    | 9373/17564 [00:20<00:13, 628.03it/s]  6-mer Freq:  54%|█████▎    | 9437/17564 [00:20<00:14, 553.22it/s]  6-mer Freq:  54%|█████▍    | 9495/17564 [00:20<00:16, 490.17it/s]  6-mer Freq:  54%|█████▍    | 9551/17564 [00:21<00:15, 504.67it/s]  6-mer Freq:  55%|█████▍    | 9606/17564 [00:21<00:15, 510.83it/s]  6-mer Freq:  55%|█████▍    | 9659/17564 [00:21<00:15, 506.60it/s]  6-mer Freq:  55%|█████▌    | 9725/17564 [00:21<00:14, 546.60it/s]  6-mer Freq:  56%|█████▌    | 9781/17564 [00:21<00:15, 518.03it/s]  6-mer Freq:  56%|█████▌    | 9834/17564 [00:21<00:15, 512.34it/s]  6-mer Freq:  56%|█████▋    | 9898/17564 [00:21<00:14, 546.29it/s]  6-mer Freq:  57%|█████▋    | 9964/17564 [00:21<00:13, 575.21it/s]  6-mer Freq:  57%|█████▋    | 10033/17564 [00:21<00:12, 606.97it/s]  6-mer Freq:  57%|█████▋    | 10095/17564 [00:22<00:12, 585.65it/s]  6-mer Freq:  58%|█████▊    | 10155/17564 [00:22<00:14, 503.34it/s]  6-mer Freq:  58%|█████▊    | 10215/17564 [00:22<00:13, 527.38it/s]  6-mer Freq:  58%|█████▊    | 10270/17564 [00:22<00:14, 490.10it/s]  6-mer Freq:  59%|█████▉    | 10321/17564 [00:22<00:16, 427.03it/s]  6-mer Freq:  59%|█████▉    | 10366/17564 [00:22<00:18, 398.39it/s]  6-mer Freq:  59%|█████▉    | 10408/17564 [00:22<00:19, 371.13it/s]  6-mer Freq:  59%|█████▉    | 10447/17564 [00:22<00:19, 368.86it/s]  6-mer Freq:  60%|█████▉    | 10485/17564 [00:23<00:20, 346.81it/s]  6-mer Freq:  60%|█████▉    | 10525/17564 [00:23<00:19, 359.12it/s]  6-mer Freq:  60%|██████    | 10562/17564 [00:23<00:19, 361.03it/s]  6-mer Freq:  60%|██████    | 10599/17564 [00:23<00:19, 357.68it/s]  6-mer Freq:  61%|██████    | 10636/17564 [00:23<00:20, 330.77it/s]  6-mer Freq:  61%|██████    | 10670/17564 [00:23<00:22, 309.44it/s]  6-mer Freq:  61%|██████    | 10712/17564 [00:23<00:20, 338.27it/s]  6-mer Freq:  61%|██████▏   | 10779/17564 [00:23<00:15, 427.38it/s]  6-mer Freq:  62%|██████▏   | 10845/17564 [00:23<00:13, 492.30it/s]  6-mer Freq:  62%|██████▏   | 10896/17564 [00:24<00:13, 481.54it/s]  6-mer Freq:  62%|██████▏   | 10963/17564 [00:24<00:12, 534.28it/s]  6-mer Freq:  63%|██████▎   | 11018/17564 [00:24<00:13, 501.22it/s]  6-mer Freq:  63%|██████▎   | 11070/17564 [00:24<00:13, 479.07it/s]  6-mer Freq:  63%|██████▎   | 11119/17564 [00:24<00:15, 424.90it/s]  6-mer Freq:  64%|██████▎   | 11163/17564 [00:24<00:17, 367.04it/s]  6-mer Freq:  64%|██████▍   | 11244/17564 [00:24<00:13, 472.09it/s]  6-mer Freq:  64%|██████▍   | 11308/17564 [00:24<00:12, 511.74it/s]  6-mer Freq:  65%|██████▍   | 11363/17564 [00:25<00:12, 509.20it/s]  6-mer Freq:  65%|██████▌   | 11417/17564 [00:25<00:13, 459.58it/s]  6-mer Freq:  65%|██████▌   | 11485/17564 [00:25<00:11, 513.74it/s]  6-mer Freq:  66%|██████▌   | 11550/17564 [00:25<00:10, 547.65it/s]  6-mer Freq:  66%|██████▌   | 11617/17564 [00:25<00:10, 576.68it/s]  6-mer Freq:  67%|██████▋   | 11691/17564 [00:25<00:09, 618.29it/s]  6-mer Freq:  67%|██████▋   | 11755/17564 [00:25<00:11, 490.94it/s]  6-mer Freq:  67%|██████▋   | 11810/17564 [00:25<00:12, 476.82it/s]  6-mer Freq:  68%|██████▊   | 11874/17564 [00:26<00:11, 508.73it/s]  6-mer Freq:  68%|██████▊   | 11928/17564 [00:26<00:11, 475.31it/s]  6-mer Freq:  68%|██████▊   | 11978/17564 [00:26<00:12, 448.14it/s]  6-mer Freq:  68%|██████▊   | 12025/17564 [00:26<00:13, 419.51it/s]  6-mer Freq:  69%|██████▉   | 12079/17564 [00:26<00:12, 449.37it/s]  6-mer Freq:  69%|██████▉   | 12146/17564 [00:26<00:10, 506.60it/s]  6-mer Freq:  69%|██████▉   | 12199/17564 [00:26<00:10, 488.70it/s]  6-mer Freq:  70%|██████▉   | 12250/17564 [00:26<00:10, 484.87it/s]  6-mer Freq:  70%|███████   | 12300/17564 [00:26<00:11, 471.47it/s]  6-mer Freq:  70%|███████   | 12348/17564 [00:27<00:12, 413.12it/s]  6-mer Freq:  71%|███████   | 12391/17564 [00:27<00:13, 394.04it/s]  6-mer Freq:  71%|███████   | 12432/17564 [00:27<00:13, 381.58it/s]  6-mer Freq:  71%|███████   | 12471/17564 [00:27<00:15, 327.31it/s]  6-mer Freq:  71%|███████   | 12506/17564 [00:27<00:15, 321.95it/s]  6-mer Freq:  71%|███████▏  | 12540/17564 [00:27<00:15, 324.11it/s]  6-mer Freq:  72%|███████▏  | 12576/17564 [00:27<00:15, 332.39it/s]  6-mer Freq:  72%|███████▏  | 12610/17564 [00:27<00:15, 326.16it/s]  6-mer Freq:  72%|███████▏  | 12644/17564 [00:28<00:15, 324.21it/s]  6-mer Freq:  72%|███████▏  | 12681/17564 [00:28<00:14, 334.61it/s]  6-mer Freq:  72%|███████▏  | 12715/17564 [00:28<00:15, 304.77it/s]  6-mer Freq:  73%|███████▎  | 12768/17564 [00:28<00:13, 364.94it/s]  6-mer Freq:  73%|███████▎  | 12823/17564 [00:28<00:11, 414.59it/s]  6-mer Freq:  73%|███████▎  | 12873/17564 [00:28<00:10, 437.64it/s]  6-mer Freq:  74%|███████▎  | 12922/17564 [00:28<00:10, 451.03it/s]  6-mer Freq:  74%|███████▍  | 12968/17564 [00:28<00:10, 442.23it/s]  6-mer Freq:  74%|███████▍  | 13018/17564 [00:28<00:09, 458.61it/s]  6-mer Freq:  74%|███████▍  | 13065/17564 [00:28<00:09, 451.34it/s]  6-mer Freq:  75%|███████▍  | 13132/17564 [00:29<00:08, 512.73it/s]  6-mer Freq:  75%|███████▌  | 13184/17564 [00:29<00:09, 476.31it/s]  6-mer Freq:  75%|███████▌  | 13251/17564 [00:29<00:08, 527.37it/s]  6-mer Freq:  76%|███████▌  | 13311/17564 [00:29<00:07, 537.48it/s]  6-mer Freq:  76%|███████▌  | 13366/17564 [00:29<00:08, 498.14it/s]  6-mer Freq:  76%|███████▋  | 13436/17564 [00:29<00:07, 551.47it/s]  6-mer Freq:  77%|███████▋  | 13493/17564 [00:29<00:07, 518.37it/s]  6-mer Freq:  77%|███████▋  | 13547/17564 [00:29<00:07, 518.67it/s]  6-mer Freq:  77%|███████▋  | 13600/17564 [00:30<00:08, 460.25it/s]  6-mer Freq:  78%|███████▊  | 13674/17564 [00:30<00:07, 527.41it/s]  6-mer Freq:  78%|███████▊  | 13729/17564 [00:30<00:07, 514.37it/s]  6-mer Freq:  78%|███████▊  | 13782/17564 [00:30<00:07, 489.93it/s]  6-mer Freq:  79%|███████▉  | 13833/17564 [00:30<00:08, 443.56it/s]  6-mer Freq:  79%|███████▉  | 13879/17564 [00:30<00:08, 446.43it/s]  6-mer Freq:  79%|███████▉  | 13930/17564 [00:30<00:07, 462.98it/s]  6-mer Freq:  80%|███████▉  | 14013/17564 [00:30<00:06, 563.07it/s]  6-mer Freq:  80%|████████  | 14074/17564 [00:30<00:06, 575.38it/s]  6-mer Freq:  80%|████████  | 14133/17564 [00:31<00:07, 441.18it/s]  6-mer Freq:  81%|████████  | 14201/17564 [00:31<00:06, 497.22it/s]  6-mer Freq:  81%|████████▏ | 14271/17564 [00:31<00:06, 547.60it/s]  6-mer Freq:  82%|████████▏ | 14331/17564 [00:31<00:06, 531.65it/s]  6-mer Freq:  82%|████████▏ | 14388/17564 [00:31<00:06, 454.69it/s]  6-mer Freq:  82%|████████▏ | 14459/17564 [00:31<00:06, 514.62it/s]  6-mer Freq:  83%|████████▎ | 14526/17564 [00:31<00:05, 547.50it/s]  6-mer Freq:  83%|████████▎ | 14585/17564 [00:32<00:06, 429.94it/s]  6-mer Freq:  83%|████████▎ | 14640/17564 [00:32<00:06, 456.32it/s]  6-mer Freq:  84%|████████▎ | 14691/17564 [00:32<00:06, 427.70it/s]  6-mer Freq:  84%|████████▍ | 14761/17564 [00:32<00:05, 493.15it/s]  6-mer Freq:  84%|████████▍ | 14823/17564 [00:32<00:05, 523.59it/s]  6-mer Freq:  85%|████████▍ | 14879/17564 [00:32<00:05, 462.07it/s]  6-mer Freq:  85%|████████▌ | 14940/17564 [00:32<00:05, 497.80it/s]  6-mer Freq:  85%|████████▌ | 15009/17564 [00:32<00:04, 546.71it/s]  6-mer Freq:  86%|████████▌ | 15078/17564 [00:32<00:04, 585.41it/s]  6-mer Freq:  86%|████████▌ | 15139/17564 [00:33<00:04, 565.52it/s]  6-mer Freq:  87%|████████▋ | 15198/17564 [00:33<00:04, 506.63it/s]  6-mer Freq:  87%|████████▋ | 15251/17564 [00:33<00:04, 491.13it/s]  6-mer Freq:  87%|████████▋ | 15311/17564 [00:33<00:04, 515.40it/s]  6-mer Freq:  87%|████████▋ | 15364/17564 [00:33<00:04, 488.00it/s]  6-mer Freq:  88%|████████▊ | 15414/17564 [00:33<00:05, 406.73it/s]  6-mer Freq:  88%|████████▊ | 15458/17564 [00:33<00:05, 406.28it/s]  6-mer Freq:  88%|████████▊ | 15507/17564 [00:33<00:04, 427.08it/s]  6-mer Freq:  89%|████████▊ | 15556/17564 [00:34<00:04, 441.89it/s]  6-mer Freq:  89%|████████▉ | 15602/17564 [00:34<00:04, 433.38it/s]  6-mer Freq:  89%|████████▉ | 15647/17564 [00:34<00:04, 392.12it/s]  6-mer Freq:  89%|████████▉ | 15689/17564 [00:34<00:04, 396.26it/s]  6-mer Freq:  90%|████████▉ | 15749/17564 [00:34<00:04, 449.11it/s]  6-mer Freq:  90%|████████▉ | 15807/17564 [00:34<00:03, 477.28it/s]  6-mer Freq:  90%|█████████ | 15856/17564 [00:34<00:03, 436.23it/s]  6-mer Freq:  91%|█████████ | 15903/17564 [00:34<00:03, 444.30it/s]  6-mer Freq:  91%|█████████ | 15971/17564 [00:34<00:03, 502.88it/s]  6-mer Freq:  91%|█████████ | 16023/17564 [00:35<00:03, 496.10it/s]  6-mer Freq:  92%|█████████▏| 16077/17564 [00:35<00:03, 493.37it/s]  6-mer Freq:  92%|█████████▏| 16134/17564 [00:35<00:02, 509.47it/s]  6-mer Freq:  92%|█████████▏| 16186/17564 [00:35<00:02, 490.77it/s]  6-mer Freq:  93%|█████████▎| 16250/17564 [00:35<00:02, 528.86it/s]  6-mer Freq:  93%|█████████▎| 16304/17564 [00:35<00:02, 508.78it/s]  6-mer Freq:  93%|█████████▎| 16359/17564 [00:35<00:02, 518.15it/s]  6-mer Freq:  93%|█████████▎| 16412/17564 [00:35<00:02, 517.61it/s]  6-mer Freq:  94%|█████████▎| 16465/17564 [00:35<00:02, 480.53it/s]  6-mer Freq:  94%|█████████▍| 16517/17564 [00:36<00:02, 488.63it/s]  6-mer Freq:  94%|█████████▍| 16584/17564 [00:36<00:01, 539.24it/s]  6-mer Freq:  95%|█████████▍| 16639/17564 [00:36<00:01, 519.94it/s]  6-mer Freq:  95%|█████████▌| 16692/17564 [00:36<00:01, 489.52it/s]  6-mer Freq:  95%|█████████▌| 16742/17564 [00:36<00:01, 467.68it/s]  6-mer Freq:  96%|█████████▌| 16792/17564 [00:36<00:01, 474.96it/s]  6-mer Freq:  96%|█████████▌| 16845/17564 [00:36<00:01, 489.50it/s]  6-mer Freq:  96%|█████████▌| 16903/17564 [00:36<00:01, 515.13it/s]  6-mer Freq:  97%|█████████▋| 16955/17564 [00:36<00:01, 491.26it/s]  6-mer Freq:  97%|█████████▋| 17014/17564 [00:37<00:01, 518.21it/s]  6-mer Freq:  97%|█████████▋| 17077/17564 [00:37<00:00, 535.39it/s]  6-mer Freq:  98%|█████████▊| 17133/17564 [00:37<00:00, 542.14it/s]  6-mer Freq:  98%|█████████▊| 17188/17564 [00:37<00:00, 510.24it/s]  6-mer Freq:  98%|█████████▊| 17243/17564 [00:37<00:00, 520.57it/s]  6-mer Freq:  99%|█████████▊| 17303/17564 [00:37<00:00, 543.17it/s]  6-mer Freq:  99%|█████████▉| 17358/17564 [00:37<00:00, 456.96it/s]  6-mer Freq:  99%|█████████▉| 17413/17564 [00:37<00:00, 478.78it/s]  6-mer Freq:  99%|█████████▉| 17464/17564 [00:37<00:00, 483.16it/s]  6-mer Freq: 100%|█████████▉| 17514/17564 [00:38<00:00, 451.96it/s]  6-mer Freq: 100%|██████████| 17564/17564 [00:38<00:00, 460.55it/s]
+[Parallel(n_jobs=-1)]: Using backend ThreadingBackend with 48 concurrent workers.
+[Parallel(n_jobs=-1)]: Done 104 tasks      | elapsed:    3.3s
+[Parallel(n_jobs=-1)]: Done 200 out of 200 | elapsed:    5.1s finished
+[Parallel(n_jobs=48)]: Using backend ThreadingBackend with 48 concurrent workers.
+[Parallel(n_jobs=48)]: Done 104 tasks      | elapsed:    0.3s
+[Parallel(n_jobs=48)]: Done 200 out of 200 | elapsed:    0.3s finished
+  基因特征矩阵: (17564, 4096)
+✅ 全量特征已保存: ml_features_full.pkl
+
+
+Fold 0 数据切分完成:
+  X_train: (14032, 5120) | 正样本率: 0.471
+  X_val:   (3532, 5120)   | 正样本率: 0.497
+
+🌲 训练 Random Forest ...
+
+==================================================
+📊 [Random Forest | Fold 0]
+   AUROC : 0.9781
+   AUPRC : 0.9769
+   F1    : 0.9262
+==================================================

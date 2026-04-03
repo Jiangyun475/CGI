@@ -59,6 +59,7 @@ class OptimizedGraphDataset(Dataset):
         self.graph_indices = [self.data['graph_indices'][i] for i in self.indices]
         self.labels = torch.tensor([self.data['labels'][i] for i in self.indices], dtype=torch.float32)
         gene_sequences = [self.data['gene_sequences'][i] for i in self.indices]
+        # cache_file = Path(data_dir) / f'kmer_cache_fold{fold_idx}_{split}.pt'  
         cache_file = Path(data_dir) / f'kmer_cache_fold{fold_idx}_{split}_len3000.pt'
         if cache_file.exists():
             print(f"[{split.upper()}] ⚡ 加载 K-mer 缓存: {cache_file.name}")

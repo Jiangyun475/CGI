@@ -1,0 +1,5 @@
+[TRAIN] ⚡ 加载 K-mer 缓存: kmer_cache_fold3_train.pt
+[VAL] ⚡ 加载 K-mer 缓存: kmer_cache_fold3_val.pt
+
+🚀 论文训练版本启动 | Device: cuda:1 | AMP: True
+📊 [消融配置] 混合池化: target | 正交: True | 对比学习: True

@@ -1,0 +1,278 @@
+nohup: ignoring input
+
+==========================================================
+🚀 全细胞系消融 + 对比实验
+   cuda:1 → VCAP → HELA
+   cuda:3 → A549 → THP1
+   cuda:0 → HT29
+   cuda:2 → HUVEC（MCF7 ablation 完成后自动接续）
+   CPU    → 6 细胞系 × (RF + XGB)，各自独立后台
+==========================================================
+
+========================================================
+🔬 [GPU cuda:1] VCAP 消融实验启动
+========================================================
+   batch=512  lam_var=0.2  lam_cl=0.2
+========================================================
+🔬 [GPU cuda:3] A549 消融实验启动
+   batch=512  lam_var=0.2  lam_cl=0.2
+========================================================
+  ▶ [GPU cuda:1] VCAP / wo_CL (pool=hybrid --disable_cl)
+  ▶ [GPU cuda:3] A549 / wo_CL (pool=hybrid --disable_cl)
+========================================================
+🔬 [GPU cuda:0] HT29 消融实验启动
+   batch=512  lam_var=0.2  lam_cl=0.2
+========================================================
+  ▶ [GPU cuda:0] HT29 / wo_CL (pool=hybrid --disable_cl)
+========================================================
+🔬 [GPU cuda:2] HUVEC 消融实验启动
+   batch=128  lam_var=0.05  lam_cl=0.05
+========================================================
+  ▶ [GPU cuda:2] HUVEC / wo_CL (pool=hybrid --disable_cl)
+  ▶ [CPU] VCAP / Baseline_RF + Baseline_XGB（串行）
+  ▶ [CPU] A549 / Baseline_RF + Baseline_XGB（串行）
+  ▶ [CPU] HT29 / Baseline_RF + Baseline_XGB（串行）
+🔥 所有任务已派发
+   cuda:1 PID: 439810
+   cuda:3 PID: 439811
+  ▶ [CPU] HELA / Baseline_RF + Baseline_XGB（串行）
+   cuda:0 PID: 439812
+   cuda:2 PID: 439813
+
+查看进度：
+  tail -f logs_ablation_all/VCAP_wo_CL_Fold0.log
+  tail -f logs_ablation_all/A549_SumMean_Fold0.log
+==========================================================
+  ▶ [CPU] THP1 / Baseline_RF + Baseline_XGB（串行）
+  ▶ [CPU] HUVEC / Baseline_RF + Baseline_XGB（串行）
+    ✅ HELA Baseline_RF Fold0
+    ✅ HUVEC Baseline_RF Fold0
+    ✅ THP1 Baseline_RF Fold0
+    ✅ HUVEC Baseline_RF Fold1
+    ✅ HELA Baseline_RF Fold1
+    ✅ THP1 Baseline_RF Fold1
+    ✅ HUVEC Baseline_RF Fold2
+    ✅ HELA Baseline_RF Fold2
+    ✅ HUVEC wo_CL Fold0
+    ✅ THP1 Baseline_RF Fold2
+    ✅ THP1 Baseline_RF Fold3
+    ✅ HUVEC Baseline_RF Fold3
+    ✅ HELA Baseline_RF Fold3
+    ✅ HUVEC Baseline_RF Fold4
+    ✅ HELA Baseline_RF Fold4
+    ✅ THP1 Baseline_RF Fold4
+    ✅ HELA Baseline_XGB Fold0
+    ✅ HUVEC Baseline_XGB Fold0
+    ✅ THP1 Baseline_XGB Fold0
+    ✅ HELA Baseline_XGB Fold1
+    ✅ HUVEC Baseline_XGB Fold1
+    ✅ THP1 Baseline_XGB Fold1
+    ✅ HUVEC wo_CL Fold1
+    ✅ HUVEC Baseline_XGB Fold2
+    ✅ THP1 Baseline_XGB Fold2
+    ✅ HELA Baseline_XGB Fold2
+    ✅ HUVEC Baseline_XGB Fold3
+    ✅ HELA Baseline_XGB Fold3
+    ✅ THP1 Baseline_XGB Fold3
+    ✅ HUVEC Baseline_XGB Fold4
+  🎉 HUVEC / Baseline_RF + XGB 完成
+    ✅ HELA Baseline_XGB Fold4
+  🎉 HELA / Baseline_RF + XGB 完成
+    ✅ THP1 Baseline_XGB Fold4
+  🎉 THP1 / Baseline_RF + XGB 完成
+    ✅ HUVEC wo_CL Fold2
+    ✅ A549 Baseline_RF Fold0
+    ✅ HT29 Baseline_RF Fold0
+    ✅ HUVEC wo_CL Fold3
+    ✅ HT29 Baseline_RF Fold1
+    ✅ A549 Baseline_RF Fold1
+    ✅ HT29 Baseline_RF Fold2
+    ✅ A549 Baseline_RF Fold2
+    ✅ VCAP Baseline_RF Fold0
+    ✅ HUVEC wo_CL Fold4
+    ✅ HT29 Baseline_RF Fold3
+  🎉 HUVEC / wo_CL 完成
+  ▶ [GPU cuda:2] HUVEC / wo_Ortho (pool=hybrid --disable_ortho)
+    ✅ A549 Baseline_RF Fold3
+    ✅ VCAP Baseline_RF Fold1
+    ✅ HT29 Baseline_RF Fold4
+    ✅ HT29 Baseline_XGB Fold0
+    ✅ A549 Baseline_RF Fold4
+    ✅ VCAP Baseline_RF Fold2
+    ✅ HT29 Baseline_XGB Fold1
+    ✅ A549 Baseline_XGB Fold0
+    ✅ HUVEC wo_Ortho Fold0
+    ✅ HT29 Baseline_XGB Fold2
+    ✅ VCAP Baseline_RF Fold3
+    ✅ A549 Baseline_XGB Fold1
+    ✅ HT29 Baseline_XGB Fold3
+    ✅ A549 Baseline_XGB Fold2
+    ✅ VCAP Baseline_RF Fold4
+    ✅ HT29 Baseline_XGB Fold4
+  🎉 HT29 / Baseline_RF + XGB 完成
+    ✅ A549 Baseline_XGB Fold3
+    ✅ VCAP Baseline_XGB Fold0
+    ✅ A549 Baseline_XGB Fold4
+  🎉 A549 / Baseline_RF + XGB 完成
+    ✅ VCAP Baseline_XGB Fold1
+    ✅ HUVEC wo_Ortho Fold1
+    ✅ VCAP Baseline_XGB Fold2
+    ✅ VCAP Baseline_XGB Fold3
+    ✅ VCAP Baseline_XGB Fold4
+  🎉 VCAP / Baseline_RF + XGB 完成
+    ✅ HUVEC wo_Ortho Fold2
+    ✅ HUVEC wo_Ortho Fold3
+    ✅ HUVEC wo_Ortho Fold4
+  🎉 HUVEC / wo_Ortho 完成
+  ▶ [GPU cuda:2] HUVEC / wo_CL_Ortho (pool=hybrid --disable_cl --disable_ortho)
+    ✅ HUVEC wo_CL_Ortho Fold0
+    ✅ HUVEC wo_CL_Ortho Fold1
+    ✅ HUVEC wo_CL_Ortho Fold2
+    ✅ HT29 wo_CL Fold0
+    ✅ HUVEC wo_CL_Ortho Fold3
+    ✅ VCAP wo_CL Fold0
+    ✅ HUVEC wo_CL_Ortho Fold4
+  🎉 HUVEC / wo_CL_Ortho 完成
+  ▶ [GPU cuda:2] HUVEC / SumMean (pool=sum_mean )
+    ✅ HUVEC SumMean Fold0
+    ✅ HUVEC SumMean Fold1
+    ✅ A549 wo_CL Fold0
+    ✅ HUVEC SumMean Fold2
+    ✅ HUVEC SumMean Fold3
+    ✅ HUVEC SumMean Fold4
+  🎉 HUVEC / SumMean 完成
+  ▶ [GPU cuda:2] HUVEC / TargetOnly (pool=target )
+    ✅ HUVEC TargetOnly Fold0
+    ✅ HUVEC TargetOnly Fold1
+    ✅ HUVEC TargetOnly Fold2
+    ✅ HUVEC TargetOnly Fold3
+    ✅ HUVEC TargetOnly Fold4
+  🎉 HUVEC / TargetOnly 完成
+  ▶ [GPU cuda:2] HUVEC / Baseline_Ult (pool=sum_mean --disable_cl --disable_ortho)
+    ✅ HUVEC Baseline_Ult Fold0
+    ✅ HT29 wo_CL Fold1
+    ✅ HUVEC Baseline_Ult Fold1
+    ✅ HUVEC Baseline_Ult Fold2
+    ✅ HUVEC Baseline_Ult Fold3
+    ✅ VCAP wo_CL Fold1
+    ✅ HUVEC Baseline_Ult Fold4
+  🎉 HUVEC / Baseline_Ult 完成
+🏆 [GPU cuda:2] HUVEC 全部消融完成
+
+  ▶ [GPU cuda:2] HUVEC / Baseline_DL
+    ✅ HUVEC Baseline_DL Fold0
+    ✅ HUVEC Baseline_DL Fold1
+    ✅ HUVEC Baseline_DL Fold2
+    ✅ HUVEC Baseline_DL Fold3
+    ✅ HUVEC Baseline_DL Fold4
+  🎉 HUVEC / Baseline_DL 完成
+🏁 [cuda:2] 队列完成: HUVEC
+    ✅ A549 wo_CL Fold1
+    ✅ HT29 wo_CL Fold2
+    ✅ VCAP wo_CL Fold2
+    ✅ A549 wo_CL Fold2
+    ✅ HT29 wo_CL Fold3
+    ✅ VCAP wo_CL Fold3
+    ✅ HT29 wo_CL Fold4
+  🎉 HT29 / wo_CL 完成
+  ▶ [GPU cuda:0] HT29 / wo_Ortho (pool=hybrid --disable_ortho)
+    ✅ A549 wo_CL Fold3
+    ✅ VCAP wo_CL Fold4
+  🎉 VCAP / wo_CL 完成
+  ▶ [GPU cuda:1] VCAP / wo_Ortho (pool=hybrid --disable_ortho)
+    ✅ HT29 wo_Ortho Fold0
+    ✅ A549 wo_CL Fold4
+  🎉 A549 / wo_CL 完成
+  ▶ [GPU cuda:3] A549 / wo_Ortho (pool=hybrid --disable_ortho)
+    ✅ VCAP wo_Ortho Fold0
+    ✅ HT29 wo_Ortho Fold1
+    ✅ VCAP wo_Ortho Fold1
+    ✅ A549 wo_Ortho Fold0
+    ✅ HT29 wo_Ortho Fold2
+    ✅ VCAP wo_Ortho Fold2
+    ✅ A549 wo_Ortho Fold1
+    ✅ HT29 wo_Ortho Fold3
+    ✅ VCAP wo_Ortho Fold3
+    ✅ A549 wo_Ortho Fold2
+    ✅ HT29 wo_Ortho Fold4
+  🎉 HT29 / wo_Ortho 完成
+  ▶ [GPU cuda:0] HT29 / wo_CL_Ortho (pool=hybrid --disable_cl --disable_ortho)
+    ✅ VCAP wo_Ortho Fold4
+  🎉 VCAP / wo_Ortho 完成
+  ▶ [GPU cuda:1] VCAP / wo_CL_Ortho (pool=hybrid --disable_cl --disable_ortho)
+    ✅ HT29 wo_CL_Ortho Fold0
+    ✅ A549 wo_Ortho Fold3
+    ✅ VCAP wo_CL_Ortho Fold0
+    ✅ HT29 wo_CL_Ortho Fold1
+    ✅ HT29 wo_CL_Ortho Fold2
+    ✅ A549 wo_Ortho Fold4
+  🎉 A549 / wo_Ortho 完成
+  ▶ [GPU cuda:3] A549 / wo_CL_Ortho (pool=hybrid --disable_cl --disable_ortho)
+    ✅ VCAP wo_CL_Ortho Fold1
+    ✅ HT29 wo_CL_Ortho Fold3
+    ✅ HT29 wo_CL_Ortho Fold4
+  🎉 HT29 / wo_CL_Ortho 完成
+  ▶ [GPU cuda:0] HT29 / SumMean (pool=sum_mean )
+    ✅ A549 wo_CL_Ortho Fold0
+    ✅ VCAP wo_CL_Ortho Fold2
+    ✅ HT29 SumMean Fold0
+    ✅ A549 wo_CL_Ortho Fold1
+    ✅ HT29 SumMean Fold1
+    ✅ VCAP wo_CL_Ortho Fold3
+    ✅ HT29 SumMean Fold2
+    ✅ A549 wo_CL_Ortho Fold2
+    ✅ HT29 SumMean Fold3
+    ✅ VCAP wo_CL_Ortho Fold4
+  🎉 VCAP / wo_CL_Ortho 完成
+  ▶ [GPU cuda:1] VCAP / SumMean (pool=sum_mean )
+    ✅ A549 wo_CL_Ortho Fold3
+    ✅ HT29 SumMean Fold4
+  🎉 HT29 / SumMean 完成
+  ▶ [GPU cuda:0] HT29 / TargetOnly (pool=target )
+    ✅ HT29 TargetOnly Fold0
+    ✅ VCAP SumMean Fold0
+    ✅ A549 wo_CL_Ortho Fold4
+  🎉 A549 / wo_CL_Ortho 完成
+  ▶ [GPU cuda:3] A549 / SumMean (pool=sum_mean )
+    ✅ HT29 TargetOnly Fold1
+    ✅ VCAP SumMean Fold1
+    ✅ HT29 TargetOnly Fold2
+    ✅ A549 SumMean Fold0
+    ✅ HT29 TargetOnly Fold3
+    ✅ VCAP SumMean Fold2
+    ✅ A549 SumMean Fold1
+    ✅ HT29 TargetOnly Fold4
+  🎉 HT29 / TargetOnly 完成
+  ▶ [GPU cuda:0] HT29 / Baseline_Ult (pool=sum_mean --disable_cl --disable_ortho)
+    ✅ HT29 Baseline_Ult Fold0
+    ✅ A549 SumMean Fold2
+    ✅ VCAP SumMean Fold3
+    ✅ HT29 Baseline_Ult Fold1
+    ✅ HT29 Baseline_Ult Fold2
+    ✅ A549 SumMean Fold3
+    ✅ VCAP SumMean Fold4
+  🎉 VCAP / SumMean 完成
+  ▶ [GPU cuda:1] VCAP / TargetOnly (pool=target )
+    ✅ HT29 Baseline_Ult Fold3
+    ✅ HT29 Baseline_Ult Fold4
+  🎉 HT29 / Baseline_Ult 完成
+🏆 [GPU cuda:0] HT29 全部消融完成
+
+  ▶ [GPU cuda:0] HT29 / Baseline_DL
+    ✅ A549 SumMean Fold4
+  🎉 A549 / SumMean 完成
+  ▶ [GPU cuda:3] A549 / TargetOnly (pool=target )
+    ✅ VCAP TargetOnly Fold0
+    ✅ HT29 Baseline_DL Fold0
+Terminated
+    ✅ HT29 Baseline_DL Fold1
+Terminated
+    ✅ A549 TargetOnly Fold0
+Terminated
+    ✅ VCAP TargetOnly Fold1
+run_ablation_all.sh: line 50: 427213 Killed                  python "${SCRIPT_ULT}" --data_dir "${DATA_DIR}" --device "${GPU}" --fold "${FOLD}" --epochs 50 --batch_size "${BATCH_SIZE[$DATASET]}" --lr 2e-4 --hidden_dim 128 --dropout 0.3 --lam_var "${LAM_VAR[$DATASET]}" --lam_cl "${LAM_CL[$DATASET]}" --patience 10 --seed 42 --use_amp --pool_type "${POOL}" "$@" > "${LOG}" 2>&1
+    ✅ A549 TargetOnly Fold1
+run_ablation_all.sh: line 50: 427216 Killed                  python "${SCRIPT_ULT}" --data_dir "${DATA_DIR}" --device "${GPU}" --fold "${FOLD}" --epochs 50 --batch_size "${BATCH_SIZE[$DATASET]}" --lr 2e-4 --hidden_dim 128 --dropout 0.3 --lam_var "${LAM_VAR[$DATASET]}" --lam_cl "${LAM_CL[$DATASET]}" --patience 10 --seed 42 --use_amp --pool_type "${POOL}" "$@" > "${LOG}" 2>&1
+    ✅ VCAP TargetOnly Fold2
+run_ablation_all.sh: line 124: 427165 Killed                  python "${SCRIPT_DL}" --data_dir "${DATA_DIR}" --device "${GPU}" --fold "${FOLD}" --epochs 50 --batch_size "${BATCH_SIZE[$DATASET]}" --lr 2e-4 --hidden_dim 128 --dropout 0.3 --patience 10 --seed 42 --use_amp > "${LOG}" 2>&1
+    ✅ HT29 Baseline_DL Fold2

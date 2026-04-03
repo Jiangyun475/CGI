@@ -1,0 +1,68 @@
+[TRAIN] ⚡ K-mer 缓存: kmer_cache_fold0_train_len3000.pt
+[VAL] ⚡ K-mer 缓存: kmer_cache_fold0_val_len3000.pt
+参数量: 918,210
+
+======================================================================
+DrugOperatorNet V2  (GeneMultiHeadReader + 模式对齐耦合)
+  交互类型: operator | rank=8 | gene_len=3000
+  Device: cuda:3 | Fold: 0 | warmup=5ep
+======================================================================
+
+/home/data/jiangyun/cgi_data_pipeline5/New/train_drug_operator_v2.py:58: UserWarning: index_reduce() is in beta and the API may change at any time. (Triggered internally at ../aten/src/ATen/native/cuda/Indexing.cu:1190.)
+  device=scores.device).index_reduce_(
+Ep 01 [lr=3.00e-05] | L:0.700 (BCE:0.690 REG:0.0094) | VAL_AUC: 0.6377 | PRC: 0.6372 | F1: 0.6465
+Ep 02 [lr=9.75e-05] | L:0.664 (BCE:0.654 REG:0.0098) | VAL_AUC: 0.6939 | PRC: 0.6936 | F1: 0.6032
+Ep 03 [lr=1.65e-04] | L:0.637 (BCE:0.627 REG:0.0102) | VAL_AUC: 0.7424 | PRC: 0.7411 | F1: 0.6902
+Ep 04 [lr=2.32e-04] | L:0.614 (BCE:0.603 REG:0.0102) | VAL_AUC: 0.7735 | PRC: 0.7667 | F1: 0.6983
+Ep 05 [lr=3.00e-04] | L:0.592 (BCE:0.582 REG:0.0102) | VAL_AUC: 0.7855 | PRC: 0.7795 | F1: 0.6506
+Ep 06 [lr=3.00e-04] | L:0.572 (BCE:0.562 REG:0.0100) | VAL_AUC: 0.8079 | PRC: 0.7993 | F1: 0.7307
+Ep 07 [lr=3.00e-04] | L:0.556 (BCE:0.549 REG:0.0075) | VAL_AUC: 0.8171 | PRC: 0.8069 | F1: 0.7267
+Ep 08 [lr=3.00e-04] | L:0.546 (BCE:0.539 REG:0.0061) | VAL_AUC: 0.8299 | PRC: 0.8202 | F1: 0.7619
+Ep 09 [lr=3.00e-04] | L:0.532 (BCE:0.527 REG:0.0052) | VAL_AUC: 0.8345 | PRC: 0.8250 | F1: 0.7536
+Ep 10 [lr=3.00e-04] | L:0.521 (BCE:0.516 REG:0.0049) | VAL_AUC: 0.8412 | PRC: 0.8305 | F1: 0.7550
+Ep 11 [lr=3.00e-04] | L:0.504 (BCE:0.500 REG:0.0047) | VAL_AUC: 0.8520 | PRC: 0.8434 | F1: 0.7845
+Ep 12 [lr=3.00e-04] | L:0.493 (BCE:0.488 REG:0.0046) | VAL_AUC: 0.8602 | PRC: 0.8506 | F1: 0.7911
+Ep 13 [lr=3.00e-04] | L:0.478 (BCE:0.474 REG:0.0043) | VAL_AUC: 0.8665 | PRC: 0.8580 | F1: 0.7983
+Ep 14 [lr=3.00e-04] | L:0.464 (BCE:0.460 REG:0.0041) | VAL_AUC: 0.8737 | PRC: 0.8657 | F1: 0.7957
+Ep 15 [lr=3.00e-04] | L:0.451 (BCE:0.447 REG:0.0040) | VAL_AUC: 0.8784 | PRC: 0.8687 | F1: 0.8052
+Ep 16 [lr=3.00e-04] | L:0.441 (BCE:0.437 REG:0.0039) | VAL_AUC: 0.8802 | PRC: 0.8735 | F1: 0.8056
+Ep 17 [lr=3.00e-04] | L:0.433 (BCE:0.429 REG:0.0038) | VAL_AUC: 0.8815 | PRC: 0.8715 | F1: 0.7953
+Ep 18 [lr=3.00e-04] | L:0.426 (BCE:0.422 REG:0.0035) | VAL_AUC: 0.8868 | PRC: 0.8794 | F1: 0.8136
+Ep 19 [lr=3.00e-04] | L:0.419 (BCE:0.416 REG:0.0035) | VAL_AUC: 0.8888 | PRC: 0.8804 | F1: 0.8183
+Ep 20 [lr=3.00e-04] | L:0.415 (BCE:0.412 REG:0.0033) | VAL_AUC: 0.8897 | PRC: 0.8831 | F1: 0.8178
+Ep 21 [lr=3.00e-04] | L:0.410 (BCE:0.407 REG:0.0032) | VAL_AUC: 0.8900 | PRC: 0.8832 | F1: 0.8206
+Ep 22 [lr=3.00e-04] | L:0.407 (BCE:0.404 REG:0.0032) | VAL_AUC: 0.8905 | PRC: 0.8840 | F1: 0.8165
+Ep 23 [lr=3.00e-04] | L:0.403 (BCE:0.400 REG:0.0032) | VAL_AUC: 0.8921 | PRC: 0.8851 | F1: 0.8202
+Ep 24 [lr=3.00e-04] | L:0.400 (BCE:0.397 REG:0.0031) | VAL_AUC: 0.8937 | PRC: 0.8865 | F1: 0.8221
+Ep 25 [lr=3.00e-04] | L:0.396 (BCE:0.393 REG:0.0031) | VAL_AUC: 0.8917 | PRC: 0.8832 | F1: 0.8209
+Ep 26 [lr=3.00e-04] | L:0.393 (BCE:0.390 REG:0.0030) | VAL_AUC: 0.8923 | PRC: 0.8863 | F1: 0.8132
+Ep 27 [lr=3.00e-04] | L:0.390 (BCE:0.387 REG:0.0030) | VAL_AUC: 0.8919 | PRC: 0.8852 | F1: 0.8201
+Ep 28 [lr=3.00e-04] | L:0.387 (BCE:0.384 REG:0.0029) | VAL_AUC: 0.8965 | PRC: 0.8891 | F1: 0.8216
+Ep 29 [lr=3.00e-04] | L:0.385 (BCE:0.382 REG:0.0030) | VAL_AUC: 0.8962 | PRC: 0.8884 | F1: 0.8215
+Ep 30 [lr=3.00e-04] | L:0.382 (BCE:0.379 REG:0.0030) | VAL_AUC: 0.8978 | PRC: 0.8911 | F1: 0.8264
+Ep 31 [lr=3.00e-04] | L:0.378 (BCE:0.376 REG:0.0029) | VAL_AUC: 0.8954 | PRC: 0.8883 | F1: 0.8217
+Ep 32 [lr=3.00e-04] | L:0.376 (BCE:0.374 REG:0.0029) | VAL_AUC: 0.8972 | PRC: 0.8904 | F1: 0.8232
+Ep 33 [lr=3.00e-04] | L:0.373 (BCE:0.370 REG:0.0028) | VAL_AUC: 0.8980 | PRC: 0.8916 | F1: 0.8197
+Ep 34 [lr=3.00e-04] | L:0.371 (BCE:0.369 REG:0.0028) | VAL_AUC: 0.8975 | PRC: 0.8902 | F1: 0.8251
+Ep 35 [lr=3.00e-04] | L:0.368 (BCE:0.365 REG:0.0028) | VAL_AUC: 0.8992 | PRC: 0.8918 | F1: 0.8275
+Ep 36 [lr=3.00e-04] | L:0.366 (BCE:0.363 REG:0.0028) | VAL_AUC: 0.8971 | PRC: 0.8897 | F1: 0.8272
+Ep 37 [lr=3.00e-04] | L:0.362 (BCE:0.360 REG:0.0027) | VAL_AUC: 0.8992 | PRC: 0.8930 | F1: 0.8211
+Ep 38 [lr=3.00e-04] | L:0.360 (BCE:0.357 REG:0.0027) | VAL_AUC: 0.8978 | PRC: 0.8912 | F1: 0.8284
+Ep 39 [lr=1.50e-04] | L:0.358 (BCE:0.355 REG:0.0027) | VAL_AUC: 0.8983 | PRC: 0.8910 | F1: 0.8217
+Ep 40 [lr=1.50e-04] | L:0.345 (BCE:0.342 REG:0.0027) | VAL_AUC: 0.8993 | PRC: 0.8914 | F1: 0.8229
+Ep 41 [lr=1.50e-04] | L:0.343 (BCE:0.340 REG:0.0027) | VAL_AUC: 0.9002 | PRC: 0.8924 | F1: 0.8259
+Ep 42 [lr=1.50e-04] | L:0.340 (BCE:0.337 REG:0.0027) | VAL_AUC: 0.8995 | PRC: 0.8914 | F1: 0.8259
+Ep 43 [lr=1.50e-04] | L:0.339 (BCE:0.336 REG:0.0026) | VAL_AUC: 0.9005 | PRC: 0.8933 | F1: 0.8265
+Ep 44 [lr=1.50e-04] | L:0.337 (BCE:0.334 REG:0.0026) | VAL_AUC: 0.8999 | PRC: 0.8918 | F1: 0.8246
+Ep 45 [lr=1.50e-04] | L:0.337 (BCE:0.334 REG:0.0026) | VAL_AUC: 0.8994 | PRC: 0.8914 | F1: 0.8277
+Ep 46 [lr=1.50e-04] | L:0.335 (BCE:0.333 REG:0.0026) | VAL_AUC: 0.8996 | PRC: 0.8916 | F1: 0.8285
+Ep 47 [lr=7.50e-05] | L:0.333 (BCE:0.330 REG:0.0026) | VAL_AUC: 0.8999 | PRC: 0.8917 | F1: 0.8257
+Ep 48 [lr=7.50e-05] | L:0.325 (BCE:0.322 REG:0.0026) | VAL_AUC: 0.9002 | PRC: 0.8922 | F1: 0.8252
+Ep 49 [lr=7.50e-05] | L:0.324 (BCE:0.321 REG:0.0026) | VAL_AUC: 0.9001 | PRC: 0.8919 | F1: 0.8262
+Ep 50 [lr=7.50e-05] | L:0.322 (BCE:0.320 REG:0.0026) | VAL_AUC: 0.9003 | PRC: 0.8921 | F1: 0.8286
+Ep 51 [lr=3.75e-05] | L:0.321 (BCE:0.319 REG:0.0026) | VAL_AUC: 0.9000 | PRC: 0.8920 | F1: 0.8273
+Ep 52 [lr=3.75e-05] | L:0.317 (BCE:0.314 REG:0.0026) | VAL_AUC: 0.9001 | PRC: 0.8918 | F1: 0.8270
+Ep 53 [lr=3.75e-05] | L:0.316 (BCE:0.313 REG:0.0026) | VAL_AUC: 0.9001 | PRC: 0.8921 | F1: 0.8267
+Early stop at epoch 53
+
+最优 AUC: 0.9005  模型: results_operator_v2/A375/operator_r8_Fold0_v1.pt

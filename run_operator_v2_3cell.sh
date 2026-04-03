@@ -1,7 +1,7 @@
 #!/bin/bash
 # DrugOperatorNet V2（GeneMultiHeadReader + 模式对齐耦合）三细胞系 Fold0
-# A549 → cuda:0, VCAP → cuda:1, A375 → cuda:2
-# cuda:3 保留给模型调优
+# A549 → cuda:0, VCAP → cuda:1, A375 → cuda:3
+# cuda:2 当前被 MCF7 占用
 
 DATA_ROOT="/home/data/jiangyun/cgi_data_pipeline/outputs/datasets_classification_test_recommended"
 LOG_DIR="logs_operator_v2_3cell"
@@ -18,7 +18,7 @@ echo "========================================"
 echo "  DrugOperatorNet V2 三细胞系 Fold0"
 echo "  A549  → cuda:0"
 echo "  VCAP  → cuda:1"
-echo "  A375  → cuda:2"
+echo "  A375  → cuda:3"
 echo "========================================"
 
 nohup python New/train_drug_operator_v2.py \
@@ -41,7 +41,7 @@ sleep 5
 
 nohup python New/train_drug_operator_v2.py \
     --data_dir "$DATA_ROOT/A375" \
-    --device cuda:2 \
+    --device cuda:3 \
     $COMMON --run_tag v1 \
     > "$LOG_DIR/A375_fold0.log" 2>&1 &
 echo "[A375]  PID=$! → $LOG_DIR/A375_fold0.log"

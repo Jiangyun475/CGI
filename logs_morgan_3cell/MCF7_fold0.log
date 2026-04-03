@@ -1,0 +1,37 @@
+nohup: ignoring input
+[TRAIN] ⚡ 基因缓存: kmer_cache_fold0_train.pt
+[TRAIN] ⚡ Morgan 缓存: morgan_cache_fold0_train_r2_b2048.pt
+[VAL] ⚡ 基因缓存: kmer_cache_fold0_val.pt
+[VAL] 生成 Morgan 指纹（r=2, bits=2048）...
+100%|██████████| 42276/42276 [01:10<00:00, 601.09it/s]
+参数量: 1,280,001
+
+Morgan Baseline | r=2 bits=2048 ortho=True | Device: cuda:3 | Fold: 0
+Ep 01 | L:0.630 (BCE:0.576 Spr:0.530) | VAL_AUC: 0.8362 | PRC: 0.8234 | F1: 0.7389
+Ep 02 | L:0.524 (BCE:0.484 Spr:0.397) | VAL_AUC: 0.8581 | PRC: 0.8449 | F1: 0.7806
+Ep 03 | L:0.493 (BCE:0.456 Spr:0.369) | VAL_AUC: 0.8621 | PRC: 0.8498 | F1: 0.7774
+Ep 04 | L:0.476 (BCE:0.441 Spr:0.353) | VAL_AUC: 0.8627 | PRC: 0.8510 | F1: 0.7890
+Ep 05 | L:0.462 (BCE:0.429 Spr:0.332) | VAL_AUC: 0.8647 | PRC: 0.8507 | F1: 0.7782
+Ep 06 | L:0.448 (BCE:0.415 Spr:0.322) | VAL_AUC: 0.8670 | PRC: 0.8535 | F1: 0.7897
+Ep 07 | L:0.432 (BCE:0.400 Spr:0.321) | VAL_AUC: 0.8679 | PRC: 0.8534 | F1: 0.7891
+Ep 08 | L:0.418 (BCE:0.386 Spr:0.317) | VAL_AUC: 0.8683 | PRC: 0.8550 | F1: 0.7906
+Ep 09 | L:0.402 (BCE:0.371 Spr:0.309) | VAL_AUC: 0.8700 | PRC: 0.8552 | F1: 0.7970
+Ep 10 | L:0.391 (BCE:0.360 Spr:0.308) | VAL_AUC: 0.8701 | PRC: 0.8528 | F1: 0.7905
+Ep 11 | L:0.380 (BCE:0.349 Spr:0.304) | VAL_AUC: 0.8702 | PRC: 0.8527 | F1: 0.8015
+Ep 12 | L:0.367 (BCE:0.338 Spr:0.284) | VAL_AUC: 0.8692 | PRC: 0.8557 | F1: 0.7942
+Ep 13 | L:0.357 (BCE:0.332 Spr:0.251) | VAL_AUC: 0.8664 | PRC: 0.8521 | F1: 0.7956
+Ep 14 | L:0.348 (BCE:0.324 Spr:0.239) | VAL_AUC: 0.8697 | PRC: 0.8557 | F1: 0.7907
+Ep 15 | L:0.338 (BCE:0.315 Spr:0.234) | VAL_AUC: 0.8710 | PRC: 0.8588 | F1: 0.7963
+Ep 16 | L:0.331 (BCE:0.308 Spr:0.231) | VAL_AUC: 0.8685 | PRC: 0.8499 | F1: 0.7985
+Ep 17 | L:0.325 (BCE:0.302 Spr:0.231) | VAL_AUC: 0.8685 | PRC: 0.8487 | F1: 0.7987
+Ep 18 | L:0.315 (BCE:0.293 Spr:0.219) | VAL_AUC: 0.8646 | PRC: 0.8417 | F1: 0.7968
+Ep 19 | L:0.309 (BCE:0.287 Spr:0.219) | VAL_AUC: 0.8665 | PRC: 0.8457 | F1: 0.7968
+Ep 20 | L:0.280 (BCE:0.260 Spr:0.195) | VAL_AUC: 0.8668 | PRC: 0.8452 | F1: 0.8004
+Ep 21 | L:0.268 (BCE:0.249 Spr:0.190) | VAL_AUC: 0.8670 | PRC: 0.8453 | F1: 0.8006
+Ep 22 | L:0.260 (BCE:0.242 Spr:0.185) | VAL_AUC: 0.8669 | PRC: 0.8453 | F1: 0.7985
+Ep 23 | L:0.254 (BCE:0.235 Spr:0.184) | VAL_AUC: 0.8652 | PRC: 0.8422 | F1: 0.8018
+Ep 24 | L:0.237 (BCE:0.220 Spr:0.176) | VAL_AUC: 0.8650 | PRC: 0.8428 | F1: 0.8020
+Ep 25 | L:0.232 (BCE:0.215 Spr:0.173) | VAL_AUC: 0.8629 | PRC: 0.8377 | F1: 0.7994
+Early stop at epoch 25
+
+最优 AUC: 0.8710  模型: results_morgan/MCF7/morgan_r2_Fold0_v1.pt

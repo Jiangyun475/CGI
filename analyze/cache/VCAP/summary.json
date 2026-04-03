@@ -1,0 +1,14 @@
+{
+  "cell_line": "VCAP",
+  "fold": 0,
+  "model_path": "results_operator_moe/VCAP/no_moe_r8_k4_Fold0_v1.pt",
+  "n_val": 45459,
+  "n_pos": 22671,
+  "n_neg": 22788,
+  "auc": 0.8062339021594754,
+  "operator_rank": 8,
+  "spectrum_shape": [
+    45459,
+    8
+  ]
+}
