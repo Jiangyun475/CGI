@@ -10,21 +10,55 @@
 
 ## 0. 可解释性框架
 
-### 0.1 模型的谱分解结构
+### 0.1 模型的谱分解结构（精确描述）
 
-DrugOperatorNet 将药物-基因相互作用建模为低秩算子扰动：
+DrugOperatorNet 的扰动算子（PerturbationOperator，代码 `train_operator_moe.py` 第382行）将药物对基因的影响分解为 $r$ 个独立模式通道。**当前论文使用的模型为 `no_moe` 消融版，不含 MoE 路由器**，完整计算链为：
 
-$$\mathbf{T} = \mathbf{I} + \mathbf{U}\boldsymbol{\Sigma}\mathbf{V}^\top$$
+**Step 1 — 药物侧分解**（均来自药效团嵌入 `pharma_emb [B, r, H]`）
 
-其中：
-- $\mathbf{U} \in \mathbb{R}^{B \times r \times H}$：药物生成的 $r$ 个**扰动方向向量**（药物内在属性）
-- $\boldsymbol{\Sigma} = \mathrm{diag}(\sigma_1, \ldots, \sigma_r)$：各模式的**幅度**（scalar per mode per drug）
-- $\mathbf{V} = \mathbf{h}_g^{\text{modes}} \in \mathbb{R}^{B \times r \times H}$：基因在各模式子空间中的**响应方向**
+$$\mathbf{U}_j = \text{normalize}(\text{MLP}_u(\mathbf{p}_j)) \in \mathbb{R}^H, \quad j=1,\ldots,r$$
+$$\mathbf{V}_j = \text{normalize}(\text{MLP}_v(\mathbf{p}_j)) \in \mathbb{R}^H$$
+$$\sigma_j = \tanh(\text{MLP}_\sigma(\mathbf{p}_j)) \in [-1,1]$$
 
-**交互谱**（interaction spectrum）：
-$$s_j = \langle \mathbf{U}_j, \mathbf{V}_j \rangle \cdot \sigma_j$$
+其中 $\mathbf{p}_j$ 为药物的第 $j$ 号药效团槽（pharmacophore slot）嵌入。
 
-表示药物在第 $j$ 个生物模式上对该基因的激活强度。
+**Step 2 — 基因侧模式特异性表示**（来自 GeneMultiHeadReader）
+
+$$\mathbf{h}_{g,j}^{\text{modes}} \in \mathbb{R}^H, \quad j=1,\ldots,r$$
+
+每个 $\mathbf{h}_{g,j}^{\text{modes}}$ 是基因 $g$ 在第 $j$ 个注意力头下的加权聚合输出，代表该基因"从第 $j$ 个生物学视角的表示"。
+
+**Step 3 — 模式对齐耦合（V2 设计的核心）**
+
+$$c_j = \langle \mathbf{V}_j, \mathbf{h}_{g,j}^{\text{modes}} \rangle$$
+
+$c_j$ 衡量"药物的第 $j$ 号输入方向"与"基因在第 $j$ 个模式下的表示"的对齐程度。这是与经典低秩算子的本质区别：V_j 作用于**模式特异性**的基因表示 $\mathbf{h}_{g,j}^{\text{modes}}$，而非作用于单一基因向量 $\mathbf{h}_g$。
+
+**Step 4 — 交互谱与净扰动**
+
+$$\boxed{s_j = \sigma_j \cdot \langle \mathbf{V}_j, \mathbf{h}_{g,j}^{\text{modes}} \rangle}$$
+
+$$\boxed{\Delta\mathbf{h} = \sum_{j=1}^{r} s_j \cdot \mathbf{U}_j}$$
+
+**Step 5 — 分类（no_moe）**
+
+$$\text{logit} = \text{MLP}\left([\mathbf{h}_g^{\text{global}}; \Delta\mathbf{h}]\right)$$
+
+---
+
+**与"T = I + UΣV^⊤"的关系**：代码注释中的算子类比 $T = I + \sum_j \sigma_j \mathbf{u}_j \otimes \mathbf{v}_j^\top$ 是概念性表达，其中 $\mathbf{v}_j^\top$ 在实际实现中作用于**模式特异性**的基因向量 $\mathbf{h}_{g,j}^{\text{modes}}$ 而非统一基因向量，是双线性交互的变体。
+
+---
+
+**三个可解释量的语义**：
+
+| 量 | 形状 | 物理含义 |
+|----|------|---------|
+| $\sigma_j$ | $[B, r]$ | 药物对第 $j$ 个生物学程序的**内在激活强度**（与基因无关） |
+| $c_j = \langle V_j, h_{g,j}^{\text{modes}}\rangle$ | $[B, r]$ | 药物与该基因在第 $j$ 个程序上的**方向对齐度** |
+| $s_j = \sigma_j \cdot c_j$ | $[B, r]$ | **有效交互谱**：pair 级别的机制指纹（同时编码药物强度和基因响应方向） |
+
+**可解释性分析中，$\sigma_j$ 用于药物聚类（与基因无关），$s_j$ 用于 GO 富集（依赖 pair 级关联）。**
 
 ### 0.2 可解释性的三个层次
 
@@ -49,20 +83,23 @@ $$\bar{s}_{j,g} = \frac{1}{|\mathcal{P}^+_g|} \sum_{i \in \mathcal{P}^+_g} s_{j,
 
 **基因视角（gene view）**：对每个模式 $j$，按 $\|\mathbf{h}_g^{\text{modes}}[:,j,:]\|_2$ 排序，取 Top-100 基因做富集。
 
-### 1.2 八个谱模式的生物学标注
+### 1.2 八个谱模式的工作标注（GO 富集推断）
 
-| 模式 | 生物学标注 | 代表性 GO term（交互视角） | FDR |
-|------|-----------|--------------------------|-----|
-| Mode 0 | **Kinase Signaling** | Regulation Of Protein Kinase Activity (GO:0045859) | 1.97e-3 |
-| Mode 1 | **Cell Cycle** | Positive Regulation Of Mitotic Nuclear Division (GO:0045840) | 2.54e-2 |
-| Mode 2 | **Metabolic Process** | Regulation Of Amide Metabolic Process (GO:0034248) | 4.25e-2 |
-| Mode 3 | **Golgi / Vesicular Transport** | Retrograde Transport, Vesicle Recycling Within Golgi (GO:0000301) | 6.59e-3 |
-| Mode 4 | **Mitochondrial Apoptosis** | Mitochondrial Fragmentation In Apoptotic Process (GO:0043653) | 6.65e-3 |
-| Mode 5 | **NF-κB / MAPK Signaling** | Regulation Of IKK/NF-κB Signaling (GO:0043122) | 2.13e-3 |
-| Mode 6 | **RTK（弱，marginal）** | Neg. Reg. Of Protein Tyrosine Kinase Activity (GO:0061099) | 9.10e-2 |
-| Mode 7 | **Apoptosis Regulation** | Positive Regulation Of Apoptotic Process (GO:0043065) | 2.22e-2 |
+> **说明**：以下"生物学标注"是工作标签（working label），依据是交互视角下的 GO 富集结果。证据级别为"该模式富集于对应生物过程"，而非"该模式等同于该通路"。正式论文写作中应使用"X-enriched program"或"putatively associated with X"表述。
 
-**8/8 模式均有对应 GO 富集；7/8 FDR < 0.05（Mode 6 边缘）。**
+| 模式 | 工作标注 | 代表性 GO term（交互视角） | FDR | 富集证据强度 |
+|------|---------|--------------------------|-----|------------|
+| Mode 0 | Kinase-signaling-enriched | Regulation Of Protein Kinase Activity (GO:0045859) | 1.97e-3 | ★★★ |
+| Mode 1 | Cell-cycle-enriched | Positive Regulation Of Mitotic Nuclear Division (GO:0045840) | 2.54e-2 | ★★ |
+| Mode 2 | Metabolic-process-enriched | Regulation Of Amide Metabolic Process (GO:0034248) | 4.25e-2 | ★★ |
+| Mode 3 | Golgi/vesicular-transport-enriched | Retrograde Transport, Vesicle Recycling Within Golgi (GO:0000301) | 6.59e-3 | ★★★ |
+| Mode 4 | Mitochondrial-apoptosis-enriched | Mitochondrial Fragmentation In Apoptotic Process (GO:0043653) | 6.65e-3 | ★★★ |
+| Mode 5 | NF-κB/MAPK-signaling-enriched | Regulation Of IKK/NF-κB Signaling (GO:0043122) | 2.13e-3 | ★★★ |
+| Mode 6 | RTK-signaling-associated（边缘，marginal） | Neg. Reg. Of Protein Tyrosine Kinase Activity (GO:0061099) | 9.10e-2 | ★ |
+| Mode 7 | Apoptosis-regulation-enriched | Positive Regulation Of Apoptotic Process (GO:0043065) | 2.22e-2 | ★★ |
+
+**7/8 FDR < 0.05；Mode 6 边缘（FDR=0.091）。**  
+**增强证据**：下节 1.3 的核心基因（DNM1L/DRP1 → Mode 4，PCNA → Mode 1，GRN/CD40 → Mode 5）提供了独立的基因层验证，与 GO 富集结果一致。
 
 **图表**：`interp/results/MCF7/go/mode_identity_barplot.png`
 
