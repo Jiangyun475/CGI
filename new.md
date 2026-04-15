@@ -1,105 +1,94 @@
-**Introduction (简介)**
+**Introduction**
 
-- **Background (背景)**
+- Background: large-scale perturbation transcriptomics (LINCS L1000); predicting chemical-gene interactions (CGI) from structure; challenge of generalization to unseen compounds (chemical cold split)
 
-- **Current Limitations (现有局限)**
+- Current Limitations: existing methods (DeepCE, CIGER, PRnet) treat drug-gene interaction as scalar regression or classification without mechanistic structure; lack intrinsic interpretability; rely on task-mismatched objectives or pretraining
 
-- **Our Contributions (我们的贡献)**
-
----
-
-**Results (结果)**
-
-**1. Model Architecture and Training (模型架构与训练)**
-
--     1.1 Architecture Overview (架构概览)
-
--     1.2 Training Configuration (训练配置)
-
-**2. Performance Comparison (性能对比)**
-
--     2.1 Benchmark Comparison (基准对比)
-
--     2.2 Statistical Analysis (统计分析)
-
-**3. Ablation Studies (消融实验)**
-
--     3.1 Component Ablation (组件消融)
-
--     3.2 Feature Ablation (特征消融)
-
--     3.3 Hyperparameter Sensitivity (超参数敏感性)
-
-**4. Cross-Dataset Generalization (跨数据集泛化)**
-
--     4.1 Cross-Cell Line Validation (跨细胞系验证)
-
--     4.2 Data Efficiency Analysis (数据效率分析)
-
-**5. Interpretability Analysis (可解释性分析)**
-
--     5.1 Chemical Substructure Analysis (化学子结构分析)
-
--     5.2 Attention Mechanism Analysis (注意力机制分析)
-
--     5.3 Chemical Structure Validation (化学结构验证)
-
--     5.4 Gene Domain Validation (基因功能域验证)
-
--     5.5 Interaction Validation (相互作用验证)
+- Our Contributions:
+  1. Spectral operator decomposition: drug-gene interaction modeled as T = I + UΣVᵀ (low-rank perturbation), yielding mode-specific amplitude σⱼ, direction Uⱼ, and gene response Vⱼ
+  2. End-to-end interpretable: no post-hoc attribution; spectral modes emerge from training objective
+  3. SpectrumDirectionCL: contrastive loss enforcing distinct directional fingerprints across drugs
+  4. Biologically validated: 8 spectral modes correspond to 8 GO biological processes (7/8 FDR<0.05); drug σ fingerprints match known MOA
 
 ---
 
-**Discussion (讨论)**
+**Results**
 
-- **Key Findings (主要发现)**
+**1. Performance Comparison**
 
-- **Methodological Advantages (方法优势)**
+- 1.1 Benchmark Comparison: 4 cell lines (MCF7, A375, A549, VCAP), 5-fold chemical cold CV; AUC main metric; comparison to DeepCE-CLS (fairest baseline, same task formulation)
 
-- **Biological Insights (生物学洞察)**
+- 1.2 Ablation: operator structure contributes most (−0.0025 without); CL reduces variance; ortho regularization ensures mode independence; GIN vs fixed ECFP4 (+0.0236)
 
-- **Limitations (局限性)**
+**2. Biological Interpretability of Spectral Modes**
 
-- **Future Directions (未来方向)**
+- 2.1 GO Enrichment of Spectral Modes: 8 modes → 8 distinct GO biological processes via interaction-view gene ranking; Mode 5 (NF-κB/MAPK) most significant (FDR=2.1e-3); 7/8 modes below FDR=0.05 threshold
+
+- 2.2 Drug Mechanism-of-Action Fingerprinting: per-drug σ z-score profiles reveal MOA signatures; 7 representative drugs all show z>2 in expected mode; trametinib (MEK inhibitor) Mode 4 z=+5.7, Mode 1 z=+5.0; fenretinide (apoptosis stimulant) activates M1+M4+M7 simultaneously
+
+- 2.3 Drug Clustering by Spectral Signature: UMAP of per-drug σ profiles reveals MOA-driven clustering; active drugs separate from inactive by dominant mode
+
+**3. Cross-Cell Line Generalization**
+
+- 3.1 Performance across 4 cell lines: MCF7 0.8928±0.0021, A375 0.9011±0.0050, A549 TBD, VCAP TBD
+
+- 3.2 (Optional) Cross-cell mode consistency: do the same 8 biological processes emerge independently in A375/A549/VCAP? (requires running interp pipeline on other models)
 
 ---
 
-**Methods (方法)**
+**Discussion**
 
-**1. Data Preprocessing (数据预处理)**
+- Key Findings: spectral decomposition provides intrinsic interpretable structure while maintaining competitive AUC; mode identity is data-driven and validated post-hoc
 
--     1.1 Dataset Description (数据集描述)
+- Methodological Advantages: end-to-end without pretrained embeddings; operator rank r=8 as inductive bias for pathway-level organization
 
--     1.2 Feature Engineering (特征工程)
+- Biological Insights: NF-κB and Kinase signaling are the dominant drug-response axes in MCF7 (Mode 0, 5 most significant GO); apoptosis-inducing drugs activate multiple modes simultaneously (fenretinide: M1+M4+M7)
 
--     1.3 Data Splitting (数据划分)
+- Limitations: chemical cold split is stringent; mode labels are post-hoc (from GO); Mode 6 (RTK) marginal significance; 4 cell lines only
 
-**2. Model Architecture (模型架构)**
+- Future Directions: 46-cell line generalization; cross-cell mode alignment; integration with clinical response data
 
--     2.1 Chemical Encoder (化学编码器)
+---
 
--     2.2 Gene Encoder (基因编码器)
+**Methods**
 
--     2.3 Bias-Aware Attention (偏置感知注意力)
+**1. Data**
 
-**3. Training Details (训练细节)**
+- 1.1 Dataset: LINCS L1000 (978 landmark genes); 4 cell lines; binary label: |z-score| > 2.0 = positive pair; chemical cold 5-fold split by compound Tanimoto similarity
 
--     3.1 Optimization (优化)
+- 1.2 Statistics: MCF7 209,657 pairs / 11,933 compounds; positive rate ≈ 7%; val fold ~42K pairs, ~9.7K compounds
 
--     3.2 Regularization (正则化)
+**2. Model Architecture (DrugOperatorNet)**
 
--     3.3 Early Stopping (早停)
+- 2.1 Chemical Encoder: 3-layer GIN (hidden=128, edge features: bond type/ring/aromatic); global mean/max pool; output → pharma_emb [r, H] via linear projection
 
-**4. Evaluation Metrics (评估指标)**
+- 2.2 Gene Encoder (GeneMultiHeadReader): embedding table (978 genes × H); r independent attention heads reading per-mode gene representation; output h_g_modes [r, H], h_g_global [H]
 
--     4.1 Classification Metrics (分类指标)
+- 2.3 Perturbation Operator: T = I + UΣVᵀ where U=pharma_emb [r,H], Σ=diag(σ) per-mode amplitudes, V=h_g_modes [r,H]; interaction spectrum = ⟨U_j, V_j⟩·σ_j; perturbation Δh = Σⱼ spectrum_j · V_j
 
--     4.2 Statistical Tests (统计检验)
+- 2.4 Classifier: MLP on [h_g_global; Δh] → logit; sigmoid → probability
 
-**5. Literature Validation Methods (文献验证方法)**
+- 2.5 SpectrumDirectionCL: contrastive loss on direction vectors U_j normalized to unit sphere; push apart directions of different drugs; τ=0.07
 
--     5.1 Database Queries (数据库查询)
+**3. Training**
 
--     5.2 Validation Criteria (验证标准)
+- 3.1 Objective: BCE + lam_sparse·||σ||₁ + lam_ortho·||UᵀU − I||_F² + lam_cl·L_CL
 
+- 3.2 Optimizer: Adam; lr=2e-4 with 5-epoch warmup; cosine decay with restart; patience=10 early stopping; batch=512; AMP
+
+- 3.3 Hyperparameters: r=8, H=128, lam_sparse=0.01, lam_ortho=0.1, lam_cl=0.1, dropout=0.3, seed=42
+
+**4. Interpretability Pipeline**
+
+- 4.1 GO Enrichment: for each mode j, rank genes by interaction view (mean spectrum_j over positive pairs); top-100 genes → Enrichr (GO_BP_2023, KEGG_2021); FDR-corrected
+
+- 4.2 Drug Fingerprinting: per-drug mean σ across val pairs; z-score vs global distribution; dominant mode = argmax(z-score)
+
+**5. Baselines**
+
+- DeepCE-CLS: original DeepCE architecture with masked BCE classification head (same task formulation as ours); 100 epochs, MCF7 Fold0 only
+
+- DeepCE-REG: original regression objective; AUC computed by thresholding predicted z-scores at 2.0
+
+- ECFP4: fixed 2048-bit fingerprint + linear projection; same operator structure; ablation of GIN
 

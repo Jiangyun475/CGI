@@ -277,7 +277,10 @@ python New/train_operator_moe.py \
 
 **所有 7 个药物 z-score > 2.1，dominant mode 与已知 MOA 完全吻合。**
 
-图表位置：`interp/results/MCF7/case_study/case_study_sigma.png`（grouped bar）和 `case_study_zscore_heatmap.png`（z-score heatmap）
+**论文图表（publication-ready）：**
+- `interp/results/MCF7/go/mode_identity_barplot.png` → Fig 4A（GO mode 身份条形图）
+- `interp/results/MCF7/case_study/case_study_zscore_heatmap.png` → Fig 4B（7药物 z-score 热图）
+- `interp/results/MCF7/case_study/case_study_sigma.png` → Fig S3（z-score 指纹条形图，补充）
 
 ### 5.3 分析
 
