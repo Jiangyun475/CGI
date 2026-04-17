@@ -40,7 +40,9 @@
 
 **数据路径**：`/home/data/jiangyun/cgi_data_pipeline/outputs/datasets_classification_test_recommended/`  
 **Split文件**：`{CELL}/chemical_cold_splits.pkl`（5-fold，按化合物化学结构分割）  
-**正例定义**：`|z-score| > 2.0`，label=1；否则 label=0  
+**样本集合**：仅保留 `|z-score| > 2.0` 的显著 drug-gene pairs；`|z-score| <= 2.0` 的非显著 pair 不进入当前训练/评估集。  
+**标签定义**：`label=1` 表示 `z-score > +2.0`（显著上调）；`label=0` 表示 `z-score < -2.0`（显著下调）。  
+**任务定义**：显著 CGI 的方向分类（up-regulation vs down-regulation），不是“显著 vs 非显著”分类。  
 **评估指标**：Val AUC（ROC-AUC，per-fold best epoch）
 
 ---
@@ -130,6 +132,8 @@ python New/train_operator_moe.py \
 | MLP_op | 0-4 | `NEW2/logs/MLP_op_Fold{n}.log` | `NEW2/results/MCF7/no_moe_r8_k4_Fold{n}_MLP_op_mlpOp.pt` |
 | MLP_pure | 0-4 | `NEW2/logs/MLP_pure_Fold{n}.log` | `NEW2/results/MCF7/no_moe_r8_k4_Fold{n}_MLP_pure_noCL_noOrtho_mlpOp.pt` |
 
+> **[2026-04-16 决策]** no_CL vs Full：均值差 0.0000，p=1.000（不显著）。**CL 从论文消融表中移除**，不作为性能组件声称。训练时 lam_cl 设为 0（即用 no_CL 配置作为论文主模型）。消融表仅保留两个有意义对比：MLP_op（p=0.036 ★）和 no_Ortho（可解释性驱动）。
+
 ### 分析
 
 1. **低秩算子结构有效（核心消融）**：MLP_op vs Full，差距 −0.0025（5-fold均值）。在相同编码器下，低秩分解结构 T=I+UΣVᵀ 提供了有效的归纳偏置，显式分离"作用方向 × 响应方向 × 强度"，优于黑盒 MLP 融合。
@@ -179,27 +183,27 @@ python New/train_operator_moe.py \
 | 4 | 0.9075 | `logs_5fold_cl/A375_fold4.log` |
 | **Mean±Std** | **0.9011±0.0050** | — |
 
-### A549（训练中）
+### A549（5-fold 全部完成，2026-04-16）
 
 | Fold | AUC | 日志 |
 |------|-----|------|
 | 0 | 0.8692 | `logs_5fold_cl/A549_fold0.log` |
 | 1 | 0.8597 | `logs_5fold_cl/A549_fold1.log` |
 | 2 | 0.8526 | `logs_5fold_cl/A549_fold2.log` |
-| 3 | 🔄 | `logs_5fold_cl/A549_fold3.log` |
-| 4 | — | `logs_5fold_cl/A549_fold4.log` |
-| **Mean±Std** | **待更新（fold0-2均值≈0.8605）** | — |
+| 3 | 0.8657 | `logs_5fold_cl/A549_fold3.log` |
+| 4 | 0.8609 | `logs_5fold_cl/A549_fold4.log` |
+| **Mean±Std** | **0.8616±0.0057** | — |
 
-### VCAP（训练中）
+### VCAP（5-fold 全部完成，2026-04-16）
 
 | Fold | AUC | 日志 |
 |------|-----|------|
 | 0 | 0.8081 | `logs_5fold_cl/VCAP_fold0.log` |
 | 1 | 0.8183 | `logs_5fold_cl/VCAP_fold1.log` |
-| 2 | 🔄 | `logs_5fold_cl/VCAP_fold2.log` |
-| 3 | — | `logs_5fold_cl/VCAP_fold3.log` |
-| 4 | — | `logs_5fold_cl/VCAP_fold4.log` |
-| **Mean±Std** | **待更新（fold0-1均值≈0.8132）** | — |
+| 2 | 0.8157 | `logs_5fold_cl/VCAP_fold2.log` |
+| 3 | 0.8195 | `logs_5fold_cl/VCAP_fold3.log` |
+| 4 | 0.8084 | `logs_5fold_cl/VCAP_fold4.log` |
+| **Mean±Std** | **0.8140±0.0049** | — |
 
 ---
 
@@ -292,12 +296,76 @@ python New/train_operator_moe.py \
 
 ---
 
+## 实验六：SBB + Tanimoto 消融（MCF7 Fold0）
+
+**日期**：2026-04-17 启动  
+**脚本**：`New/train_sbb.py`  
+**基准参数**（与实验一完全一致，仅新增开关）：
+
+```bash
+# base（复现论文基准，对照用）
+python New/train_operator_moe.py \
+  --data_dir /home/data/jiangyun/cgi_data_pipeline/outputs/datasets_classification_test_recommended/MCF7 \
+  --device cuda:0 --fold 0 --ablation no_moe \
+  --epochs 80 --batch_size 512 --lr 2e-4 \
+  --hidden_dim 128 --operator_rank 8 --dropout 0.3 \
+  --gene_max_len 1000 --warmup_epochs 5 \
+  --lam_sparse 0.01 --lam_ortho_modes 0.1 --lam_cl 0.0 \
+  --patience 10 --seed 42 --use_amp --run_tag base_ref
+
+# +SBB
+python New/train_sbb.py \
+  --data_dir /home/data/jiangyun/cgi_data_pipeline/outputs/datasets_classification_test_recommended/MCF7 \
+  --device cuda:0 --fold 0 \
+  --epochs 80 --batch_size 512 --lr 2e-4 \
+  --hidden_dim 128 --operator_rank 8 --dropout 0.3 \
+  --gene_max_len 1000 --warmup_epochs 5 \
+  --lam_sparse 0.01 --lam_ortho_modes 0.1 \
+  --patience 10 --seed 42 --use_amp \
+  --use_sbb --run_tag sbb
+
+# +Tanimoto
+python New/train_sbb.py \
+  --data_dir /home/data/jiangyun/cgi_data_pipeline/outputs/datasets_classification_test_recommended/MCF7 \
+  --device cuda:0 --fold 0 \
+  --epochs 80 --batch_size 512 --lr 2e-4 \
+  --hidden_dim 128 --operator_rank 8 --dropout 0.3 \
+  --gene_max_len 1000 --warmup_epochs 5 \
+  --lam_sparse 0.01 --lam_ortho_modes 0.1 \
+  --patience 10 --seed 42 --use_amp \
+  --lam_tanimoto 0.1 --run_tag tan
+
+# +Both
+python New/train_sbb.py \
+  --data_dir /home/data/jiangyun/cgi_data_pipeline/outputs/datasets_classification_test_recommended/MCF7 \
+  --device cuda:0 --fold 0 \
+  --epochs 80 --batch_size 512 --lr 2e-4 \
+  --hidden_dim 128 --operator_rank 8 --dropout 0.3 \
+  --gene_max_len 1000 --warmup_epochs 5 \
+  --lam_sparse 0.01 --lam_ortho_modes 0.1 \
+  --patience 10 --seed 42 --use_amp \
+  --use_sbb --lam_tanimoto 0.1 --run_tag sbb_tan
+```
+
+| 配置 | Fold0 AUC | Δ vs base | 状态 |
+|------|-----------|-----------|------|
+| base（train_operator_moe.py） | 0.8941 | — | 已知 |
+| +SBB | — | — | ❌ 待跑 |
+| +Tanimoto | — | — | ❌ 待跑 |
+| +Both | — | — | ❌ 待跑 |
+
+**日志目录**：`logs_new_models/`  
+**模型目录**：`results_sbb/MCF7/`
+
+---
+
 ## 待补实验（占位符）
 
 以下实验尚未完成，结果待填：
 
 | 实验 | 状态 | 预计完成 | 负责节 |
 |------|------|---------|-------|
-| A375/A549/VCAP 5-fold（lam_cl=0.1）| 🔄 训练中 | 今日内 | 实验二 |
+| A375/A549/VCAP 5-fold（lam_cl=0.1）| ✅ 已完成（2026-04-16）| — | 实验二 |
+| DeepCE-REG-MASK 结果填入 | ❌ 未完成 | — | 实验三 |
 | 46细胞系（lam_cl=0.1重跑确认）| ❌ 未启动 | — | 待新建节 |
 | 可解释性：A375/A549/VCAP 谱分析 | ❌ 未做 | — | 待新建节 |
