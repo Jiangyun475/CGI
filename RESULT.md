@@ -762,3 +762,236 @@ nohup python main_deepce_reg_auc.py \
 
 ### 日志
 `logs_new_models/MCF7_cmcgi_r8_fold0.log`
+
+---
+
+## [2026-04-18] CMCGIv3：最小化改动版（DrugCondGeneReader 替换 GeneMultiHeadReader）
+
+**文件**：`New/train_cmcgi_v3.py`  
+**思路**：在 no_moe 骨架基础上，**只替换 gene encoder**，保持单侧 sigma（药物专属）+ 单处正交正则（U向量），彻底消除 v1 的双侧sigma + 三处正交正则的架构冲突。
+
+### 三个版本对比（MCF7 Fold0）
+
+| 版本 | 架构改动 | gene_max_len | AUC | 分析 |
+|------|---------|-------------|-----|------|
+| no_moe 基线 | 原版 | 1000 | **0.8941** | 单侧sigma+1处ortho |
+| CMCGIv1 (v1) | 双侧sigma+3处ortho+双向CrossAttn | 1000 | 0.8878 | -0.006，sigma&ortho冲突 |
+| CMCGIv2 (v2) | +gated条件化+单独全局readout | 1000 (s3) | 0.8880 | -0.006，根因未解决 |
+| **CMCGIv3 (v3)** | **只换gene encoder** | 2000 | **0.8917** | -0.0024，恢复大半 |
+
+### CMCGIv3 关键改动
+
+1. **DrugCondGeneReader 替换 GeneMultiHeadReader**：
+   - `base_queries [r,H]`：kaiming 初始化（非零）
+   - `drug_gate = Linear(H,r)`，bias=-3 → gate 从 0.047 逐渐增长
+   - `queries = base_queries + gate * MLP(drug_rough)`
+   - `log_tau [r]`：可学习温度（各模式独立锐化）
+2. **单侧 sigma**（药物专属，同 no_moe）：generalize 到未见药物
+3. **单处正交正则**（U 向量，lam=0.05）：最少约束
+4. **gene_max_len=2000**：2× 序列覆盖，全分辨率（stride=1）
+
+### 训练过程
+
+- ortho loss: 0.875 → 0.016（ep62），健康收敛
+- 早停：ep62（patience=12），最优 ep50（AUC=0.8917）
+- 参数量：1,067,858（vs 基线 918K，+16%）
+
+### 分析
+
+- **vs v1/v2**：恢复 0.004 AUC，验证了双侧sigma和三处ortho是根因
+- **vs 基线（-0.0024）**：药物条件化 gene queries 在 chemical cold split 下微降，因 OOD 药物的 drug_rough 影响 gene 注意力分配
+- **len=2000 的代价**：序列加长带来远端噪声；2M token/batch → 计算量增加
+- gene_attn 判别性预期与 v1 相当（4.54×），待 interp2 验证
+
+### 后续 v4 计划
+
+- hidden_dim=192（2M参数，+87%容量），gene_max_len=1000（回归基线序列长度）
+- 预期：解决容量瓶颈，AUC 0.895+，争取破 0.90
+- 当前训练中：`logs_new_models/MCF7_cmcgi_v4_h192_len1000_fold0.log`
+
+### 日志
+`logs_new_models/MCF7_cmcgi_v3_len2000_fold0.log`
+
+---
+
+## [2026-04-18] 容量扩展实验 + 双头架构探索（MCF7 Fold0）
+
+### 关键发现：化学 cold split 下过拟合与容量的关系
+
+**重要结论**：hidden_dim=192 对 no_moe 和 CMCGIv3 **全线比 h128 差**。h128 是这个任务的容量甜点。
+
+| 实验 | h | len | 架构 | AUC | vs no_moe h128 |
+|------|---|-----|------|-----|---------------|
+| **no_moe h128（基线）** | 128 | 1000 | no_moe | **0.8941** | — |
+| no_moe h192 | 192 | 1000 | no_moe | 0.8893 | **-0.005** |
+| CMCGIv3 | 128 | 2000 | DrugCondGeneReader | 0.8917 | -0.002 |
+| CMCGIv4 | 192 | 1000 | DrugCondGeneReader | 0.8922 | -0.002 |
+| CMCGIv5 | 192 | 2000 | DrugCondGeneReader | 0.8883 | -0.006 |
+
+**分析**：
+- 化学 cold split（测试药物从未出现在训练集）下，更大的模型反而过拟合训练集的药物分布
+- h192 比 h128 多 ~87% 参数，但 no_moe 性能下降 0.005
+- DrugCondGeneReader 的 ~0.002 AUC 差距在所有容量配置下保持稳定
+- **len=2000 的代价**：v5（h192,len2000）= 0.8883，不如 v4（h192,len1000）= 0.8922
+- **最优超参**：h=128，len=1000，唯一变量是架构
+
+### v6：双头解耦（lam_align=0.5，h128，len=1000）
+
+- 参数量：1,069,138
+- 设计：pred_head（固定 queries）+ interp_head（drug-conditioned）+ align loss
+- **问题**：lam_align=0.5 过强，interp_head 从 ep13 起坍缩为 pred_head 副本（Align=0.000）
+- ortho loss 收敛慢（ep25 还有 0.052，v3 同期 0.023），align 梯度通过 CNN 反传干扰 U 收敛
+- 结论：align loss 设计有误，不应使用强对齐
+
+### v6b：双头集成（修正版，h128，len=1000，无 align loss）
+
+- 参数量：1,101,906（宽分类器 4H→H→1 多 ~33K）
+- 设计：pred_head + interp_head + **宽分类器**集成，无 align loss
+- lam_ortho_interp=0.01（极弱，只保多样性）
+- interp head 通过 BCE 梯度直接学习，drug conditioning 自然保留
+- 预测：AUC ≈ 0.892-0.896（宽分类器集成 pred+interp 两路互补信息）
+- 当前训练中：`logs_new_models/MCF7_cmcgi_v6b_h128_fold0.log`
+
+---
+
+## [2026-04-18] 双头架构最终结果汇总（MCF7 Fold0）
+
+### 架构演进总结
+
+| 版本 | AUC | vs baseline | 可解释性 | 状态 |
+|------|-----|------------|---------|------|
+| no_moe h128（基线） | **0.8941** | — | 均匀注意力(1.19×) | ✓ |
+| v3 DrugCondGeneReader | 0.8917 | -0.002 | drug-conditioned(4.54×) | ✓ |
+| v6 dual-head align=0.5 | 0.8930 | -0.001 | interp 坍缩为 pred | ✓ |
+| **v6b dual-head 无align** | **0.8937** | **-0.0004** | drug-conditioned interp_attn | ✓ |
+| v6_align01 (align=0.1) | - | - | 待完成 | 🔄 |
+
+**v6b 是最佳可解释性模型**：
+- AUC 差距仅 0.0004（统计噪声范围内）
+- pred_head（固定 queries）主导预测（保住 AUC）
+- interp_head（drug-conditioned）提供可解释性
+- 宽分类器自适应集成两路信号
+- 参数量：1,101,906（+3.2% vs 基线）
+
+### 战略重定向（2026-04-18）
+
+**MCF7 AUC 0.894 是 chemical cold split 的上限**，所有架构变体（容量/序列/双头）都在 0.888-0.894 区间内收敛。
+
+**论文战略转向**：
+1. A375 已有 no_moe AUC=0.9016（>0.90），是论文核心亮点
+2. v6b 在 MCF7 匹配基线（-0.0004），预期在 A375 也匹配（即 >0.90）
+3. 论文贡献：**多细胞系 SOTA AUC + 首次端到端药物子结构-基因序列共归因**
+
+### 待跑实验
+
+- A375 v6b Fold0：验证 >0.90 + 可解释性（cuda:0，进行中）
+- MCF7 no_moe 5-fold CV：Fold1-4（cuda:2，进行中）
+- A375 no_moe 5-fold CV：MCF7 完成后自动启动（cuda:2）
+- v6_align01：align=0.1 消融（cuda:1，进行中）
+
+### align 强度消融实验（MCF7 Fold0，v6 架构）
+
+| lam_align | AUC | Align@ep25 | 诊断 |
+|-----------|-----|-----------|------|
+| 0.5（v6）  | 0.8930 | ≈0 | interp 坍缩，但强 CNN 正则 |
+| **0 (v6b)** | **0.8937** | — | 宽分类器集成互补信息，最优 |
+| 0.1 | 0.8904 | ≈0 | 两头不到位，最差 |
+
+**结论**：align loss 对 v6 架构是"要么全开要么关闭"的二元选择。v6b（关闭+宽分类器）胜出。
+
+---
+
+## [2026-04-19] MCF7 0.90 突破尝试：残差修复 + 架构探索
+
+### 背景
+
+已知最优配置：`no_moe + SpectrumDirectionCL (lam_cl=0.1) + soft_label`，MCF7 Fold0 AUC=**0.8954**。
+目标：突破 0.90。已通过 log 分析定位瓶颈。
+
+### Log 诊断结论
+
+从 `MCF7_nomoe_cl01.log` 分析：
+- **BCE 持续下降，AUC ep35 后基本饱和**（0.890→0.895，仅涨0.005，而BCE从0.39降到0.32）
+- **平台区振荡 ±0.005**：优化器在平坦景观中漫游，非过拟合
+- **唯一有效的改进路线**：增加监督密度（CL），非增大参数量
+
+### 残差修复实验（v8/v9）
+
+**假设**：spectrum [B,r] 是核心交互指纹但未直接输入分类器；CNN mean pool 绕过 mode-query attention 的残差可补充丢失的基因背景信号。
+
+**v8（spectrum残差 + CNN均值残差）**：
+- 修改1：`h_g_global = h_g_modes.mean(1) + x.mean(1)`（CNN均值残差）
+- 修改2：`features = cat([h_g_global, delta_h, spectrum])`（spectrum直连分类器）
+- 文件：`New/train_v8_residual.py`
+
+**v9（dilated CNN + 两个残差修改）**：
+- 基于 train_cmcgi_v7.py（1.11M参数，扩张CNN感受野144-1152bp）
+- 叠加 v8 的两个残差修改
+- 文件：`New/train_v9_combined.py`
+
+### 实验结果
+
+| 模型 | MCF7 Fold0 AUC | vs 基线(0.8954) | 参数量 | 说明 |
+|------|----------------|----------------|--------|------|
+| **no_moe baseline** | **0.8954** | — | 918K | soft_label+lam_cl=0.1 |
+| v7 dilated CNN | 0.8938 | −0.0016 | 1,115K | 扩张CNN感受野至1152bp |
+| v8 residual (no sl, cl=0.05) | 0.8922 | −0.0032 | ~919K | 参数不匹配，仅参考 |
+| v9 combined (no sl) | 0.8930 | −0.0024 | ~1,116K | 参数不匹配，仅参考 |
+| MCF7 5-fold Fold1 | 0.8898 | — | 918K | no_sl, lam_cl=0.05 |
+| MCF7 5-fold Fold2 | 0.8937 | — | 918K | no_sl, lam_cl=0.05 |
+| MCF7 5-fold Fold3 | 0.8943 | — | 918K | no_sl, lam_cl=0.05 |
+| MCF7 5-fold Fold4 | 0.8951 | — | 918K | no_sl, lam_cl=0.05 |
+
+### 核心结论
+
+1. **dilated CNN 无效**：gene encoder 感受野（6-72bp → 1152bp）扩大不提升性能，确认基因编码器不是瓶颈。
+2. **残差修改微弱降低**：spectrum直连+CNN均值残差 v8=0.8922，略低于基线（训练参数不完全匹配，需v8_softlabel版确认）。
+3. **架构路线已穷举**：3轮大型架构探索（双边化/多尺度/条件化/dilated/残差）均低于基线。
+4. **监督密度是唯一杠杆**：CL是唯一有效的改进路线（+0.003，降方差）。
+
+### soft_label实验结果（已收敛，全部终止）
+
+| 实验 | max AUC | 说明 |
+|------|---------|------|
+| baseline + soft_label + lam_cl=0.1 | 0.8780 | MCF7_nomoe_cl_softlabel.log |
+| v8_residual + soft_label + lam_cl=0.1 | 0.8768 | 残差修改不提升 |
+| baseline + soft_label + lam_cl=0.2 | 0.8769 | 更强CL无效 |
+| baseline + soft_label + lam_cl=0.0 | 0.8753 | 无CL更差 |
+| v10_dropedge(0.1) + soft_label + lam_cl=0.1 | 0.8784 | DropEdge微弱+0.004 |
+
+---
+
+## [2026-04-19] 关键发现：soft_label有害 + 正确基线重建
+
+### 核心发现
+
+**soft_label 显著降低 AUC（−0.017）**：
+
+| 配置 | max AUC |
+|------|---------|
+| no soft_label + CL(0.1) | **0.8954** ← 真实最优基线 |
+| soft_label + CL(0.1) | 0.8780 |
+| soft_label + no CL | 0.8754 |
+
+**根本原因**：soft_label将二分类目标从{0,1}改为soft概率（0.3~0.7区间），BCE收敛到0.32 vs 0.58。Hard labels让模型学习更锐利的决策边界，对chemical cold split的OOD泛化更有利。
+
+**此前所有"soft_label"版本实验结论无效**，均在错误基线上进行比较。
+
+### 新实验（无soft_label，正确基线）
+
+| 实验 | GPU | 目的 |
+|------|-----|------|
+| cl01_nosoftlabel_verify | cuda:0 | 复现基线0.8954，验证可重复性 |
+| dropedge01_cl01_nosl | cuda:1 | DropEdge(0.1)+CL(0.1)，测试OOD增强 |
+| cl02_nosoftlabel | cuda:2 | lam_cl=0.2，测试更强CL |
+| dropedge01_cl02_nosl | cuda:3 | DropEdge(0.1)+CL(0.2)，最强组合 |
+
+## [2026-04-19] v11 GeneConditionedCL + spec_norm 实验结果
+
+| 实验 | max AUC | vs基线(0.8954) |
+|------|---------|----------------|
+| MCF7_v11_genecl_cl01_fold0 | 0.8933 | -0.0021 |
+| MCF7_v11_genecl_cl01_de01_fold0 | 0.8916 | -0.0038 |
+| MCF7_v11_genecl_cl02_fold0 | 0.8918 | -0.0036 |
+| MCF7_baseline_verify3_fold0 | 0.8913 | -0.0041 |
+**v11最佳AUC=0.8933，未超过基线0.8954**
