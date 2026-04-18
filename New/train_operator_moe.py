@@ -71,9 +71,14 @@ def set_seed(seed=42):
         torch.cuda.manual_seed_all(seed)
 
 
-def encode_kmer_sequence(sequence: str, k: int = 6, max_len: int = 1000) -> list:
+def encode_kmer_sequence(sequence: str, k: int = 6, max_len: int = 1000,
+                         stride: int = 1) -> list:
+    """
+    stride=1: 每个位置一个 k-mer（默认，覆盖 ~max_len bp）
+    stride>1: 每 stride 个位置采一个 k-mer（覆盖 ~max_len*stride bp，等效扩大感受野）
+    """
     kmers = []
-    for i in range(len(sequence) - k + 1):
+    for i in range(0, len(sequence) - k + 1, stride):
         kmer = sequence[i:i+k].upper()
         if any(c not in 'ACGT' for c in kmer):
             kmer = 'N' * k
@@ -133,18 +138,19 @@ def scatter_add(src, batch_idx, dim_size):
 # ================================================================
 
 class OptimizedGraphDataset(Dataset):
-    def __init__(self, data_dir, fold_idx=0, split='train', gene_max_len=1000):
+    def __init__(self, data_dir, fold_idx=0, split='train', gene_max_len=1000,
+                 gene_stride=1):
         import pickle
         with open(Path(data_dir) / 'chemical_cold_splits.pkl', 'rb') as f:
             splits = pickle.load(f)
         self.indices = splits[fold_idx][0] if split == 'train' else splits[fold_idx][1]
         cell_line = Path(data_dir).name
-        self.data = torch.load(Path(data_dir) / f'preprocessed_graphs_{cell_line}.pt')
+        self.data = torch.load(Path(data_dir) / f'preprocessed_graphs_{cell_line}.pt',
+                               weights_only=False)
         self.smiles_to_graph = self.data['smiles_to_graph']
         self.graph_indices = [self.data['graph_indices'][i] for i in self.indices]
         self.labels = torch.tensor(
             [self.data['labels'][i] for i in self.indices], dtype=torch.float32)
-        # zscore（用于 soft label）：如果数据集中有 zscore 字段则加载，否则为 None
         if 'zscores' in self.data:
             self.zscores = torch.tensor(
                 [self.data['zscores'][i] for i in self.indices], dtype=torch.float32)
@@ -152,15 +158,21 @@ class OptimizedGraphDataset(Dataset):
             self.zscores = None
         gene_sequences = [self.data['gene_sequences'][i] for i in self.indices]
 
-        suffix = '' if gene_max_len == 1000 else f'_len{gene_max_len}'
-        cache_file = Path(data_dir) / f'kmer_cache_fold{fold_idx}_{split}{suffix}.pt'
+        # 缓存命名：len1000_s1 是默认（向后兼容保持原名）
+        len_tag    = '' if gene_max_len == 1000 else f'_len{gene_max_len}'
+        stride_tag = '' if gene_stride == 1      else f'_s{gene_stride}'
+        cache_file = Path(data_dir) / \
+            f'kmer_cache_fold{fold_idx}_{split}{len_tag}{stride_tag}.pt'
+
         if cache_file.exists():
             print(f"[{split.upper()}] ⚡ K-mer 缓存: {cache_file.name}")
-            self.gene_ids = torch.load(cache_file)
+            self.gene_ids = torch.load(cache_file, weights_only=True)
         else:
-            print(f"[{split.upper()}] 生成 K-mer 缓存 (len={gene_max_len})...")
+            bp_coverage = gene_max_len * gene_stride
+            print(f"[{split.upper()}] 生成 K-mer 缓存 "
+                  f"(len={gene_max_len}, stride={gene_stride}, ~{bp_coverage}bp)...")
             self.gene_ids = torch.tensor(
-                [encode_kmer_sequence(seq, max_len=gene_max_len)
+                [encode_kmer_sequence(seq, max_len=gene_max_len, stride=gene_stride)
                  for seq in tqdm(gene_sequences)], dtype=torch.long)
             torch.save(self.gene_ids, cache_file)
 
@@ -724,9 +736,9 @@ def train(args):
     device = torch.device(args.device)
 
     train_ds = OptimizedGraphDataset(
-        args.data_dir, args.fold, 'train', args.gene_max_len)
+        args.data_dir, args.fold, 'train', args.gene_max_len, args.gene_stride)
     val_ds   = OptimizedGraphDataset(
-        args.data_dir, args.fold, 'val',   args.gene_max_len)
+        args.data_dir, args.fold, 'val',   args.gene_max_len, args.gene_stride)
     train_loader = DataLoader(train_ds, batch_size=args.batch_size, shuffle=True,
                               collate_fn=collate_fn, num_workers=4)
     val_loader   = DataLoader(val_ds,   batch_size=args.batch_size, shuffle=False,
@@ -770,7 +782,8 @@ def train(args):
     print(f"\n{'='*72}")
     print(f"  OperatorMoE | ablation={args.ablation}")
     print(f"  operator_rank={args.operator_rank} | num_experts={args.num_experts}")
-    print(f"  gene_max_len={args.gene_max_len} | warmup={args.warmup_epochs}ep")
+    print(f"  gene_max_len={args.gene_max_len} stride={args.gene_stride} "
+        f"(~{args.gene_max_len*args.gene_stride}bp) | warmup={args.warmup_epochs}ep")
     print(f"  params={n_params:,} | device={args.device} | fold={args.fold}")
     print(f"{'='*72}\n")
 
@@ -906,7 +919,9 @@ if __name__ == '__main__':
                         help='LR warmup（attn_queries 零初始化需要预热）')
 
     parser.add_argument('--gene_max_len',  type=int, default=1000,
-                        help='基因 k-mer 序列长度')
+                        help='k-mer token 数量（序列覆盖 = max_len × stride bp）')
+    parser.add_argument('--gene_stride',   type=int, default=1,
+                        help='k-mer 采样步长（1=逐位，2=每2bp采一次，以此类推）')
     parser.add_argument('--operator_rank', type=int, default=8,
                         help='算子秩 r = 药效团数 = 基因读取头数')
     parser.add_argument('--num_experts',   type=int, default=4,
