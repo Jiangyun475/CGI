@@ -1066,3 +1066,138 @@ DropEdge是本轮唯一稳定有效的改进，+0.002 AUC。
 3. **P2**：A375消融表（已有大量数据）
 4. **P3（可选）**：若需要提升MCF7，考虑ensemble 3个最佳seed
 
+
+---
+
+## [2026-04-19] v12 Gene-Conditioned Pharmacophore (GCP) 启动
+
+### 核心算法改变（仅修改PharmacophoreExtractor，+15K参数）
+
+```
+baseline: queries [r, H] — 全局固定，所有药物-基因对共用
+v12:      queries = query_proj(h_g_modes) [B, r, H] — 基因mode条件化
+```
+
+**可解释性（化学子结构 ↔ 基因片段）：**
+- `atom_scores[i, s]` = 药物第i个原子对基因mode s的注意力强度
+- 基因mode s对应一组k-mer序列片段（gene_attn[b,s,:]显示哪些位置）
+- 直接构建"化学官能团激活哪个基因序列区域"的对应图
+
+**OOD鲁棒性原理：**
+- 原子类型/杂化/键型在训练集中可枚举 → 原子级特征比全局分子embedding更OOD稳定
+- Gene-conditioned query聚焦化学相关原子，过滤novel scaffold中对该基因无关的部分
+- 本质上是隐式OOD过滤器
+
+### 实验状态
+| 实验 | GPU | 状态 |
+|------|-----|------|
+| MCF7_v12_gcp_cl01_fold0 | cuda:0 | 训练中 |
+| MCF7_v12_gcp_cl01_de01_fold0 | cuda:2 | 训练中 |
+
+早期观察（ep5）：
+- AUC=0.8273（baseline同期0.8375，稍慢，正常——新参数warmup需要更多时间）
+- REG loss高（0.044），baseline ep3已降至0.012：gene-conditioned mode相关性更高，正交化更慢
+- 等ep20+判断是否有实质性改进
+
+---
+
+## [2026-04-19] v14/v15/v16 TF-Mediated Bilinear 系列实验结果
+
+### 动机：从基因维度建模 TF 介导机制（隐变量显式化）
+
+**核心架构**：drug → GIN → drug_tf [B,r]；gene → CNN → gene_tf [B,r]；logit = Σ_k W_k·drug_tf_k·gene_tf_k
+
+### v14（TF双线性 + Tanh）
+| 实验 | AUC | 说明 |
+|------|-----|------|
+| r32_base | 0.8908 | |
+| r32_de01 | 0.8913 | 最佳 |
+| r16_de01 | 0.8892 | |
+| r8_base  | 0.8812 | 概念数不足 |
+
+**根本问题诊断（Tanh饱和）**：
+- BCE梯度/元素 ≈ 5e-3 vs SP惩罚梯度 ≈ 6e-7，比值8000×
+- ep5起drug_tf/gene_tf全部饱和到±1，Tanh导数≈0，GIN/CNN停止学习
+- 模型退化为符号匹配器，AUC天花板0.891
+
+### v15（去Tanh → L2归一化）
+| 实验 | AUC | 说明 |
+|------|-----|------|
+| r32_de01 | 0.8764 | |
+| r32_ortho01 | 0.8718 | |
+
+**新发现（L2归一化OR损失失效）**：
+- 单位球面上协方差迹固定=1，无法等于目标I（迹=r=32）
+- OR损失梯度从ep1到结束完全不变（0.031常数），encoder无法通过OR学习
+- 初始logit std=0.03（目标~1.0），导致收敛极慢
+
+### v16（L2归一化 × sqrt(r)，正确修复）
+| 实验 | AUC | epochs | 说明 |
+|------|-----|--------|------|
+| r32_base | 0.8917 | 87 | |
+| r32_de01 | **0.8929** | 106 | 本系列最佳 |
+
+**v16修复效果**：
+- 初始logit std: 0.03(v15) → 0.97(v16) ✓
+- ep10 AUC: 0.758(v15) → 0.858(v16)，+0.10 ✓
+- OR损失: 常数0.031(v15) → 可优化，0.021→0.025(v16) ✓
+
+### 系列结论
+
+| 模型 | AUC | vs基线0.8954 |
+|------|-----|-------------|
+| v14 最佳（r32_de01）| 0.8913 | -0.0041 |
+| v16 最佳（r32_de01）| 0.8929 | -0.0025 |
+| **基线 no_moe_cl01** | **0.8954** | 参考 |
+
+**根本诊断（优化了错误的方向）**：
+- v14-v16全部低于基线：问题不在交互模型（算子→双线性），基线的PerturbationOperator更有表达力
+- v14-v16缺少对比学习（CL）：基线用lam_cl=0.1，这是主要差距来源
+- Drug encoder OOD是真正的天花板：GIN对novel scaffold的泛化能力限制性能上限
+
+**下一步方向**：
+1. v17 = v16 + CL（补回丢失的对比学习，最快验证）
+2. Promoter DNA gene encoder（用TSS上游2kb替代gene body，真正捕获TF binding motif）
+3. Multi-cell-line training（30×更多drug supervision信号）
+
+---
+
+## [2026-04-19] v17 最终结果 + Few-Shot诊断 + v18设计
+
+### v17 结果（v16 + TFDirectionCL）
+
+| 配置 | 最优AUC | 对应Epoch | vs v16 |
+|------|---------|-----------|--------|
+| v17_r32_cl01 | 0.8925 | ep70 | -0.0004 |
+| v17_r32_cl01_de01 | 0.8921 | ep79 | -0.0008 |
+| v16_r32_de01（参考） | **0.8929** | — | — |
+
+**结论**：TFDirectionCL无效。CL损失卡在0.1237（epoch 10起）不下降，说明方向学习任务过难（drug_tf是TF激活向量，方向的生物学意义不清晰）。
+
+### Bayesian Few-Shot 评估结果（v16_r32_de01）
+
+```
+K=0:  0.8929 (+0.0000)
+K=1:  0.8903 (-0.0026)
+K=5:  0.8733 (-0.0196)
+K=10: 0.8512 (-0.0417)
+K=20: 0.8183 (-0.0745)
+```
+
+**灾难性退化** — K越大AUC越低，Bayesian Adapter完全失效。
+
+**根本原因诊断**：当前gene_sequence是mRNA（CDS+UTR），而TF结合位点在启动子区（TSS上游）。gene_tf学到的是密码子偏好/GC含量，不是TF结合谱。Bayesian Adapter的物理假设（drug_tf·gene_tf ≈ TF binding score）在mRNA下不成立。
+
+### v18设计（TanimotoCL + 启动子DNA）
+
+**核心改进**：
+1. **TanimotoCL**：对批内药物对，若Morgan FP Tanimoto(i,j) ≥ 0.3，则强制cos(drug_tf_i, drug_tf_j) ≈ 2T(i,j)-1
+   - 设计原则：三种"同基因同效应"情况只有情况1（同骨架/同靶点，高Tanimoto）才应约束drug_tf相似，情况2（不同骨架汇聚通路）和情况3（非特异效应）通过threshold过滤
+   - MSE回归（非InfoNCE），可以表达连续相似度梯度
+2. **启动子DNA**：用TSS上游2kb+下游200bp替代mRNA，截取序列末端（TSS近端）1000个k-mer
+
+**正在运行（2026-04-19）**：
+- cuda:0: v18_r32_tan01_mrna（mRNA+TanimotoCL，测试CL独立贡献）
+- cuda:2: v18_r32_tan01_de01_mrna（mRNA+TanimotoCL+DropEdge）
+- 启动子获取中（460/978 genes fetched，继续）
+- 启动子全部完成后：重跑 v18 with promoter sequences
