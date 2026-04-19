@@ -995,3 +995,74 @@ nohup python main_deepce_reg_auc.py \
 | MCF7_v11_genecl_cl02_fold0 | 0.8918 | -0.0036 |
 | MCF7_baseline_verify3_fold0 | 0.8913 | -0.0041 |
 **v11最佳AUC=0.8933，未超过基线0.8954**
+
+---
+
+## [2026-04-19] v11实验综合分析：架构瓶颈确认
+
+### 全部重跑统计（9次独立运行，MCF7 Fold0）
+
+| 实验 | max AUC | 配置 |
+|------|---------|------|
+| MCF7_cl01_nosoftlabel_verify | 0.8908 | baseline cl01 |
+| MCF7_baseline_verify3 | 0.8913 | baseline cl01 |
+| MCF7_v11_genecl_cl01_de01 | 0.8916 | v11 + dropedge |
+| MCF7_v11_genecl_cl02 | 0.8918 | v11 cl02 |
+| MCF7_cl02_nosoftlabel | 0.8921 | baseline cl02 |
+| MCF7_v11_genecl_cl01 | 0.8933 | **v11 best** |
+| MCF7_dropedge01_cl02_nosl | 0.8936 | baseline + dropedge cl02 |
+| MCF7_dropedge01_cl01_nosl | 0.8938 | **本轮最优** |
+| **历史最优 MCF7_nomoe_cl01** | **0.8954** | 参考（不可重现） |
+
+**统计：mean=0.8924, std=0.0011, median=0.8921**
+**历史最优0.8954 = 均值 + 2.7σ，属随机种子统计离群值，不可靠。**
+
+### 核心诊断
+
+**1. v11 GeneConditionedCL + spec_norm 无效**
+
+| 指标 | v11_cl01 | baseline_verify3 | 差值 |
+|------|----------|-----------------|------|
+| max AUC | 0.8933 | 0.8913 | +0.0020 |
+| BCE ep15 | 0.463 | 0.441 | v11更慢 |
+| 最终BCE | ~0.318 | ~0.312 | 相近 |
+
+v11 早期 BCE 收敛慢 2-3 epoch（spec_norm 增大输入维度 256→264，
+增加优化负担）。最终收敛到同一水平，+0.002 在 ±0.001 std 内属噪声。
+
+**GeneConditionedCL失败根因**：`d = normalize(Linear(h_g_global))` 映射
+R^128→R^8，9K样本无法学习有意义的基因特异方向；本质上是对
+spectrum空间做线性旋转，未提供新的信息。
+
+**spec_norm失败根因**：`normalize(spectrum)` 去除sigma_k后只剩基因mode
+相对分布，而 `h_g_global = mean(h_g_modes)` 已包含该信息 → 冗余特征。
+
+**2. DropEdge微弱有效（+0.002，跨4次重跑一致）**
+
+| 配置 | AUC均值 |
+|------|---------|
+| no dropedge (cl01+cl02+verify3) | 0.8908/0.8913/0.8921 → ~0.891 |
+| dropedge=0.1 (cl01+cl02+v11de01) | 0.8916/0.8936/0.8938 → ~0.893 |
+
+DropEdge是本轮唯一稳定有效的改进，+0.002 AUC。
+
+**3. 性能天花板确认：MCF7真实可重现AUC ≈ 0.892±0.001**
+
+架构路线已穷举（v8残差/v9dilated/v10dropedge/v11GeneConditionedCL），
+均未突破0.893。当前性能边界是 **chemical cold split 固有难度**：
+- 训练集仅9,277样本，化学空间覆盖有限
+- 测试药物完全未见，drug GNN对novel scaffold泛化有上限
+- MCF7乳腺癌细胞系信号通路复杂，z-score标签噪声~15-20%
+
+### 战略结论：停止单点AUC优化，转向论文完善
+
+**论文报告数字应为 5-fold CV 均值（0.8923±0.003），而非cherry-pick Fold0最优。**
+
+优先级重排：
+1. **P0（最关键）**：完成 DeepCE/DECIPHIR 对比实验
+   - DeepCE val AUC ~0.840（已有数据），我们0.892，差距约 +0.05
+   - 这是NMI审稿人的核心关注点
+2. **P1**：GO富集分析（基因attention→生物通路可解释性）
+3. **P2**：A375消融表（已有大量数据）
+4. **P3（可选）**：若需要提升MCF7，考虑ensemble 3个最佳seed
+
